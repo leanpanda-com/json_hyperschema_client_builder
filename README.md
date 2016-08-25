@@ -30,6 +30,20 @@ def deps do
 end
 ```
 
+# Implementation
+
+## Compilation
+
+The JSON Hyperschema is loaded at compile time and produces an API module
+via a series of macros.
+
+## JSON Schema/Hyperschema Libraries
+
+Currently, there is no Elixir module that handles resolving and validating
+aganst JSON hyperschema. This code cheats by replaceing "$schema" values
+with the URL for the Draft 4 Schema, as it is the only one that `ex_json_schema`
+handles.
+
 # References
 
 ## Similar Projects
