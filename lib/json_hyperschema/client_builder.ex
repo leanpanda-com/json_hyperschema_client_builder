@@ -196,7 +196,7 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   def to_method(method) do
-    String.to_atom(String.downcase(method))
+    method |> String.downcase |> String.to_atom
   end
 
   defp handle_response(%HTTPotion.Response{status_code: 200, body: body}) do
