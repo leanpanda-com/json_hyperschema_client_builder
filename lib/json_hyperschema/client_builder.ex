@@ -111,8 +111,12 @@ defmodule JSONHyperschema.ClientBuilder do
           end
         end
       else
-        def unquote(:"#{name}")(unquote_splicing(param_vars)) do
-          path = evaluate_path(unquote(path), unquote(values))
+        def unquote(:"#{name}")(unquote_splicing(param_vars), query) do
+          path = if query do
+            evaluate_path(unquote(path), unquote(values)) <> "?#{URI.encode_query(query)}"
+          else
+            evaluate_path(unquote(path), unquote(values))
+          end
           request(unquote(api_module), unquote(method), path)
         end
       end

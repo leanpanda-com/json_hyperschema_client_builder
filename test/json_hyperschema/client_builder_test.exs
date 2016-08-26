@@ -119,6 +119,37 @@ defmodule TestData do
                   "data" => %{"$ref" => "#/definitions/thing"}
                 }
               }
+            },
+            %{
+              "method" => "GET",
+              "rel" => "instances",
+              "title" => "Index",
+              "description" => "List things",
+              "href" => "/things",
+              "schema" => %{
+                "type" => "object",
+                "additionalProperties" => false,
+                "properties" => %{
+                  "filter[query]" => %{
+                    "description" => "query with which to filter things",
+                    "example" => "apple",
+                    "type" => ["string"]
+                  }
+                }
+              },
+              "targetSchema" => %{
+                "type" => "object",
+                "required" => ["data"],
+                "additionalProperties" => false,
+                "properties" => %{
+                  "data" => %{
+                    "type" => "array",
+                    "items" => %{
+                      "$ref" => "#/definitions/thing"
+                    }
+                  }
+                }
+              }
             }
           ]
         }
@@ -245,7 +276,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
   test "it defines functions for each link" do
     functions = My.Client.Thing.__info__(:functions)
-    assert functions == [create: 1, update: 2]
+    assert functions == [create: 1, index: 1, update: 2]
   end
 
   test "it validates the supplied body against the schema" do
@@ -278,6 +309,14 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
     assert_receive {FakeHTTPClient, :request, {:post, _, parameters}}, 100
     assert parameters[:body] == JSON.encode!(thing_data)
+  end
+
+  @tag :http
+  test "it adds query parameters" do
+    My.Client.Thing.index(%{"filter[query]" => "bar"})
+
+    assert_receive {FakeHTTPClient, :request, {:get, url, _parameters}}, 100
+    assert String.ends_with?(url, "?filter%5Bquery%5D=bar")
   end
 
   @tag :http
