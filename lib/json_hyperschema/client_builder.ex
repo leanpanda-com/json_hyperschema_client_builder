@@ -91,34 +91,78 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   # Doc:
+  # Builds a function based on the needs of the schema.
+  #
+  # * JSON pointers inside hrefs become function parameters:
+  #   `"href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}"`
+  # is resolved to the 'thing' attribute 'id', so the function becomes:
+  #   `Foo.Bar.get(id, ...)`
   # * if the action has a schema, i.e. a JSON request body, the data
   #   passed when the action is called is checked against said schema.
   defmacro defaction(api_module, method, name, path, params, body_schema) do
     quote location: :keep, bind_quoted: binding() do
-      {param_vars, values} = handle_action_params(params)
-      if has_body?(method) do
-        def unquote(:"#{name}")(unquote_splicing(param_vars), body) do
-          {:ok, unresolved} = JSON.decode(unquote(body_schema))
-          schema = ExJsonSchema.Schema.resolve(unresolved)
-          report = ExJsonSchema.Validator.validate(schema, body)
+      # 1. Set up the functions parameter list
+
+      {method_params, values} = handle_action_params(params)
+      # If we have a schema, we need to accept params
+      params_var = if body_schema do
+        Macro.var(:params, nil)
+      end
+
+      # Add `params` as the last parameter
+      method_params = if params_var do
+        method_params ++ [params_var]
+      else
+        method_params
+      end
+
+      # 2. Build the function's code
+
+      # The URL is created by inserting parameter values into the URL template.
+      # If we have query params for a GET request, add them to the URL when we
+      # create it. Otherwise, just create the URL
+      path_assignment = if params_var && !has_body?(method) do
+        quote do
+          path = evaluate_path(unquote(path), unquote(values)) <> "?#{URI.encode_query(unquote(params_var))}"
+        end
+      else
+        quote do
+          path = evaluate_path(unquote(path), unquote(values))
+        end
+      end
+
+      request_call = if params_var && has_body?(method) do
+        # Pass the JSON-encoded params as the request body
+        quote do
+          body_json = JSON.encode!(unquote(params_var))
+          request(unquote(api_module), unquote(method), path, body: body_json)
+        end
+      else
+        quote do
+          request(unquote(api_module), unquote(method), path)
+        end
+      end
+
+      validation_and_call = if body_schema do
+        quote do
+          report = validate_parameters(unquote(params_var), unquote(body_schema))
           case report do
             {:error, _} ->
               report
             _ ->
-              path = evaluate_path(unquote(path), unquote(values))
-              body_json = JSON.encode!(body)
-              request(unquote(api_module), unquote(method), path, body: body_json)
+              unquote(request_call)
           end
         end
       else
-        def unquote(:"#{name}")(unquote_splicing(param_vars), query) do
-          path = if query do
-            evaluate_path(unquote(path), unquote(values)) <> "?#{URI.encode_query(query)}"
-          else
-            evaluate_path(unquote(path), unquote(values))
-          end
-          request(unquote(api_module), unquote(method), path)
+        quote do
+          unquote(request_call)
         end
+      end
+
+      # 3. Finally, we can define the actual function:
+      def unquote(:"#{name}")(unquote_splicing(method_params)) do
+        unquote(path_assignment)
+        unquote(validation_and_call)
       end
     end
   end
@@ -127,6 +171,12 @@ defmodule JSONHyperschema.ClientBuilder do
     {:ok, schema} = make_schema_draft4_compatible(json)
     |> JSON.decode
     schema
+  end
+
+  def validate_parameters(params, schema) do
+    {:ok, unresolved} = JSON.decode(schema)
+    schema = ExJsonSchema.Schema.resolve(unresolved)
+    ExJsonSchema.Validator.validate(schema, params)
   end
 
   def ensure_definitions_and_links!(schema) do
@@ -159,14 +209,14 @@ defmodule JSONHyperschema.ClientBuilder do
 
   def handle_action_params(params) do
     # Build the function's parameter list
-    param_vars = Enum.map(params, fn(a) -> Macro.var(a, nil) end)
+    method_params = Enum.map(params, fn(a) -> Macro.var(a, nil) end)
     # Build a binding, so eval_string gets all the parameters
     # Example: [id: {:id, [], nil}]
     values = Enum.map(
-      param_vars,
+      method_params,
       fn({name, meta, scope}) -> {name, {name, meta, scope}} end
     )
-    {param_vars, values}
+    {method_params, values}
   end
 
   # Turns ("/foo/#{bar}", [id: 123]) into "/foo/123"
