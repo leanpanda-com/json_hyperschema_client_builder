@@ -195,6 +195,12 @@ defmodule TestData do
 
   def thing_id, do: 123
 
+  def response_data, do: %{"ciao" => "hello"}
+
+  def response_content, do: %{"data" => response_data}
+
+  def response_body, do: JSON.encode!(response_content)
+
   def set_fake_client(client) do
     Application.put_env(
       :json_hyperschema_client_builder,
@@ -216,7 +222,7 @@ end
 defmodule FakeHTTPClient do
   def request(method, url, options) do
     send self, {__MODULE__, :request, {method, url, options}}
-    %HTTPotion.Response{status_code: 200, body: "{}"}
+    %HTTPotion.Response{status_code: 200, body: TestData.response_body}
   end
 end
 
@@ -322,6 +328,13 @@ defmodule JSONHyperschema.ClientBuilderTest do
   @tag :http
   test "it returns OK if the call succeeds" do
     {:ok, _} = My.Client.Thing.create(thing_data)
+  end
+
+  @tag :http
+  test "it returns the JSON-decoded response body" do
+    {:ok, body} = My.Client.Thing.index(%{"filter[query]" => "bar"})
+
+    assert body == response_data
   end
 
   @tag :http
