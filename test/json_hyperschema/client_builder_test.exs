@@ -282,7 +282,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
   test "it defines functions for each link" do
     functions = My.Client.Thing.__info__(:functions)
-    assert functions == [create: 1, index: 1, update: 2]
+    assert functions == [create: 1, index: 0, index: 1, update: 2]
   end
 
   test "it validates the supplied body against the schema" do
@@ -323,6 +323,11 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
     assert_receive {FakeHTTPClient, :request, {:get, url, _parameters}}, 100
     assert String.ends_with?(url, "?filter%5Bquery%5D=bar")
+  end
+
+  @tag :http
+  test "if the query has no required parameters, params are optional" do
+    My.Client.Thing.index
   end
 
   @tag :http

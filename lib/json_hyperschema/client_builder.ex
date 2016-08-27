@@ -93,15 +93,23 @@ defmodule JSONHyperschema.ClientBuilder do
   # Doc:
   # Builds a function based on the needs of the schema.
   #
-  # * JSON pointers inside hrefs become function parameters:
-  #   `"href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}"`
-  # is resolved to the 'thing' attribute 'id', so the function becomes:
-  #   `Foo.Bar.get(id, ...)`
-  # * if the action has a schema, i.e. a JSON request body, the data
-  #   passed when the action is called is checked against said schema.
+  # * JSON pointers inside hrefs become function parameters.
+  #   For example:
+  #     `"href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}"`
+  #   contains the JSON pointer
+  #     `#/definitions/thing/definitions/identity`
+  #   which is resolved to the 'thing' attribute 'id', so the function becomes:
+  #     `Foo.Bar.get(id, ...)`
+  #
+  # * if the action has a schema, the last function parameter is `params`. And
+  #   when the function is called the params are checked against the action's
+  #   schema.
+  #
+  # * if its the type of method that has a body, the params are JSON encoded and
+  #   sent as the body, otherwise they are added as URL query parameters.
   defmacro defaction(api_module, method, name, path, params, body_schema) do
     quote location: :keep, bind_quoted: binding() do
-      # 1. Set up the functions parameter list
+      # 1. Set up the function's parameter list
 
       {method_params, values} = handle_action_params(params)
       # If we have a schema, we need to accept params
@@ -109,9 +117,15 @@ defmodule JSONHyperschema.ClientBuilder do
         Macro.var(:params, nil)
       end
 
-      # Add `params` as the last parameter
+      # Add `params` as the last function parameter
       method_params = if params_var do
-        method_params ++ [params_var]
+        # If there are "required" parameters, then `params` is required
+        if Map.has_key?(body_schema, "required") && length(body_schema["required"]) > 0 do
+          method_params ++ [params_var]
+        else
+          # Otherwise, make it an optional parameter with an empty Map as default.
+          method_params ++ [quote do: unquote(Macro.var(:params, nil)) \\ %{}]
+        end
       else
         method_params
       end
@@ -119,11 +133,11 @@ defmodule JSONHyperschema.ClientBuilder do
       # 2. Build the function's code
 
       # The URL is created by inserting parameter values into the URL template.
-      # If we have query params for a GET request, add them to the URL when we
-      # create it. Otherwise, just create the URL
       path_assignment = if params_var && !has_body?(method) do
+        # Add encoded params to the URL as query parameters
         quote do
-          path = evaluate_path(unquote(path), unquote(values)) <> "?#{URI.encode_query(unquote(params_var))}"
+          path = evaluate_path(unquote(path), unquote(values)) <>
+            "?#{URI.encode_query(unquote(params_var))}"
         end
       else
         quote do
@@ -156,6 +170,7 @@ defmodule JSONHyperschema.ClientBuilder do
           end
         end
       else
+        # Just make the request
         quote do
           unquote(request_call)
         end
