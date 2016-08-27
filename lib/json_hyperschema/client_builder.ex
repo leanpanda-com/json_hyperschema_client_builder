@@ -73,11 +73,11 @@ defmodule JSONHyperschema.ClientBuilder do
             {uri_path, params} = JSONPointer.parse(href, schema)
             http_method = to_method(method)
             body_schema = if Map.has_key?(action, "schema") do
+              # Get a micro schema for the call parameters
               action_schema_ref = resource_ref ++ ["links", i, "schema"]
-              fragment = JSONHyperschema.Schema.denormalize_ref(
+              JSONHyperschema.Schema.denormalize_ref(
                 action_schema_ref, schema
               )
-              JSON.encode!(fragment)
             end
             defaction(
               api_module,
@@ -144,8 +144,10 @@ defmodule JSONHyperschema.ClientBuilder do
       end
 
       validation_and_call = if body_schema do
+        # Do validations of the `params` parameter before making the request
+        quoted_schema = Macro.escape(body_schema)
         quote do
-          report = validate_parameters(unquote(params_var), unquote(body_schema))
+          report = validate_parameters(unquote(params_var), unquote(quoted_schema))
           case report do
             {:error, _} ->
               report
@@ -174,9 +176,8 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   def validate_parameters(params, schema) do
-    {:ok, unresolved} = JSON.decode(schema)
-    schema = ExJsonSchema.Schema.resolve(unresolved)
-    ExJsonSchema.Validator.validate(schema, params)
+    resolved = ExJsonSchema.Schema.resolve(schema)
+    ExJsonSchema.Validator.validate(resolved, params)
   end
 
   def ensure_definitions_and_links!(schema) do
