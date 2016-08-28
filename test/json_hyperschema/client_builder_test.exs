@@ -81,11 +81,15 @@ defmodule JSONHyperschema.ClientBuilderTest do
   import TestData
 
   setup context do
-    unless context[:skip_good_schema], do: TestClientBuilder.build(good_schema)
+    case context[:schema] do
+      :none -> nil
+      nil   -> TestClientBuilder.build(good_schema)
+      _     -> TestClientBuilder.build(context[:schema])
+    end
     if context[:http], do: set_fake_client(FakeHTTPClient)
 
     on_exit fn ->
-      unless context[:skip_good_schema] do
+      if context[:schema] != :none do
         :code.purge(My.Client)
         :code.purge(My.Client.Thing)
         :code.delete(My.Client)
@@ -97,7 +101,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
   end
 
   describe "schema errors" do
-    @tag :skip_good_schema
+    @tag schema: :none
     test "it fails if the schema has no endpoint" do
       assert_raise(
         JSONHyperschema.Schema.MissingEndpointError,
@@ -105,7 +109,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
       )
     end
 
-    @tag :skip_good_schema
+    @tag schema: :none
     test "it fails if there are no definitions" do
       assert_raise(
         JSONHyperschema.ClientBuilder.MissingDefinitionsError,
@@ -113,7 +117,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
       )
     end
 
-    @tag :skip_good_schema
+    @tag schema: :none
     test "it fails if there are no links in a definition" do
       assert_raise(
         JSONHyperschema.ClientBuilder.MissingLinksError,
