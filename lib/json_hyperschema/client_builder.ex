@@ -270,10 +270,10 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   defp handle_response(%HTTPotion.Response{status_code: 200, body: body}) do
-    {:ok, JSX.decode!(body)["data"]}
+    {:ok, JSX.decode!(body)}
   end
   defp handle_response(%HTTPotion.Response{status_code: 201, body: body}) do
-    {:ok, JSX.decode!(body)["data"]}
+    {:ok, JSX.decode!(body)}
   end
   defp handle_response(%HTTPotion.Response{status_code: _status_code, body: body}) do
     {:error, JSX.decode!(body)}

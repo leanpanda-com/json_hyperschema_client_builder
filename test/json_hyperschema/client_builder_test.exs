@@ -57,9 +57,9 @@ defmodule TestData do
     })
   end
 
-  def response_data, do: %{"ciao" => "hello"}
+  def response_data, do: %{"data" => %{"ciao" => "hello"}}
 
-  def response_content, do: %{"data" => response_data}
+  def response_content, do: response_data
 
   def response_body, do: JSX.encode!(response_content)
 
