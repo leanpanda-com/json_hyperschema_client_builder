@@ -112,7 +112,7 @@ defmodule JSONHyperschema.ClientBuilder do
         |> Enum.each(
           fn ({action, i}) ->
             %{"href" => href, "rel" => rel} = action
-            # the default for mathod is "GET"
+            # the default value for method is "GET"
             # v. http://json-schema.org/latest/json-schema-hypermedia.\
             # html#anchor36
             method = Map.get(action, "method", "GET")
