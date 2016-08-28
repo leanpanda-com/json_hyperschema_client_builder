@@ -1,4 +1,9 @@
 defmodule JSONHyperschema.ClientBuilder do
+  @moduledoc """
+  This module provides a series of macros that transform a JSON hyperschema
+  into set of client modules.
+  """
+
   defmodule MissingDefinitionsError do
     defexception message: "the schema does not contain any definitions"
   end
@@ -11,6 +16,43 @@ defmodule JSONHyperschema.ClientBuilder do
   @draft4_schema "http://json-schema.org/draft-04/schema"
   @interagent_hyperschema "http://interagent.github.io/interagent-hyper-schema"
 
+  @doc """
+  Defines an API client based on a JSON hyperschema.
+
+  This macro defines the top-level client module and submodules each defined
+  type (via defresource).
+
+  ## Example
+
+      schema_json = File.read!(schema_path)
+      defapi Foo.Client, schema_path
+
+  will create a submodule under Foo.Client for each type definition in the
+  schema, and a function for each API call described by "links".
+
+  If the schema contains
+
+      ...
+      "definitions": {
+        "bar": {
+          "links": [
+            {
+              "title": "Info",
+              "rel": "self",
+              "description": "Information about a bar",
+              "href": "/bars/{(%23%2Fdefinitions%2Fbar%2Fdefinitions%2Fidentity)}",
+              "method": "GET",
+              ...
+            }
+          ]
+        }
+      }
+      ...
+
+  The function `get/1` in the module `Foo.Client.Bar` will be defined.
+  The function's parameter will be the value of the `identity` to be inserted
+  in the URL.
+  """
   defmacro defapi(api_module_name, json) do
     quote location: :keep, bind_quoted: binding() do
       unresolved = load_schema(json)
@@ -56,6 +98,10 @@ defmodule JSONHyperschema.ClientBuilder do
     end
   end
 
+  @doc """
+  Defines a module for a type (found in a JSON schema definition) and defines a
+  function for each of the type's links (via defaction).
+  """
   defmacro defresource(api_module, name, schema) do
     quote location: :keep, bind_quoted: binding() do
       resource_ref = [:root, "definitions", name]
@@ -90,23 +136,24 @@ defmodule JSONHyperschema.ClientBuilder do
     end
   end
 
-  # Doc:
-  # Builds a function based on the needs of the schema.
-  #
-  # * JSON pointers inside hrefs become function parameters.
-  #   For example:
-  #     `"href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}"`
-  #   contains the JSON pointer
-  #     `#/definitions/thing/definitions/identity`
-  #   which is resolved to the 'thing' attribute 'id', so the function becomes:
-  #     `Foo.Bar.get(id, ...)`
-  #
-  # * if the action has a schema, the last function parameter is `params`. And
-  #   when the function is called the params are checked against the action's
-  #   schema.
-  #
-  # * if its the type of method that has a body, the params are JSON encoded and
-  #   sent as the body, otherwise they are added as URL query parameters.
+  @doc """
+  Builds a function based on the needs of the schema.
+
+  * JSON pointers inside hrefs become function parameters.
+    For example:
+      `"href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}"`
+    contains the JSON pointer
+      `#/definitions/thing/definitions/identity`
+    which is resolved to the 'thing' attribute 'id', so the function becomes:
+      `Foo.Bar.get(id, ...)`
+
+  * if the action has a schema, the last function parameter is `params`. And
+    when the function is called the params are checked against the action's
+    schema.
+
+  * if its the type of method that has a body, the params are JSON encoded and
+    sent as the body, otherwise they are added as URL query parameters.
+  """
   defmacro defaction(api_module, method, name, path, params, body_schema) do
     quote location: :keep, bind_quoted: binding() do
       # 1. Set up the function's parameter list
@@ -184,17 +231,24 @@ defmodule JSONHyperschema.ClientBuilder do
     end
   end
 
+  @doc false
   def load_schema(json) do
     {:ok, schema} = make_schema_draft4_compatible(json)
     |> JSX.decode
     schema
   end
 
-  def validate_parameters(params, schema) do
-    resolved = ExJsonSchema.Schema.resolve(schema)
-    ExJsonSchema.Validator.validate(resolved, params)
+  @doc false
+  defp make_schema_draft4_compatible(json) do
+    # Mega-hack
+    json
+    # we're using ExJsonSchema to resolve $refs
+    # but it only accepts Draft 4 schemas, not hyperschemas
+    |> String.replace(@draft4_hyperschema, @draft4_schema)
+    |> String.replace(@interagent_hyperschema, @draft4_schema)
   end
 
+  @doc false
   def ensure_definitions_and_links!(schema) do
     unless has_definitions?(schema), do: raise MissingDefinitionsError
     Enum.each(
@@ -207,22 +261,16 @@ defmodule JSONHyperschema.ClientBuilder do
     )
   end
 
-  def has_definitions?(schema), do: get_in(schema, ["definitions"])
-  def has_links?(definition), do: get_in(definition, ["links"])
+  defp has_definitions?(schema), do: get_in(schema, ["definitions"])
 
-  def make_schema_draft4_compatible(json) do
-    # Mega-hack
-    json
-    # we're using ExJsonSchema to resolve $refs
-    # but it only accepts Draft 4 schemas, not hyperschemas
-    |> String.replace(@draft4_hyperschema, @draft4_schema)
-    |> String.replace(@interagent_hyperschema, @draft4_schema)
-  end
+  defp has_links?(definition), do: get_in(definition, ["links"])
 
+  @doc false
   def has_body?(:get), do: false
   def has_body?(:delete), do: false
   def has_body?(_), do: true
 
+  @doc false
   def handle_action_params(params) do
     # Build the function's parameter list
     method_params = Enum.map(params, fn(a) -> Macro.var(a, nil) end)
@@ -235,6 +283,7 @@ defmodule JSONHyperschema.ClientBuilder do
     {method_params, values}
   end
 
+  @doc false
   # Turns ("/foo/#{bar}", [id: 123]) into "/foo/123"
   # Effectivey reversing what was done by JSONPointer.parse
   def evaluate_path(path, values) do
@@ -243,12 +292,7 @@ defmodule JSONHyperschema.ClientBuilder do
     interpolated_path
   end
 
-  def request(api_module, method, path, params \\ []) do
-    all_params = Keyword.merge([headers: api_module.headers], params)
-    url = api_module.endpoint <> path
-    api_module.http_client.request(method, url, all_params) |> handle_response
-  end
-
+  @doc false
   def to_action_name("self"), do: "get"
   def to_action_name("instances"), do: "index"
   def to_action_name(phrase) do
@@ -258,6 +302,7 @@ defmodule JSONHyperschema.ClientBuilder do
     |> Enum.join("_")
   end
 
+  @doc false
   def to_module_name(snake_case) do
     snake_case
     |> String.split("_")
@@ -265,8 +310,22 @@ defmodule JSONHyperschema.ClientBuilder do
     |> Enum.join("")
   end
 
+  @doc false
   def to_method(method) do
     method |> String.downcase |> String.to_atom
+  end
+
+  @doc false
+  def validate_parameters(params, schema) do
+    resolved = ExJsonSchema.Schema.resolve(schema)
+    ExJsonSchema.Validator.validate(resolved, params)
+  end
+
+  @doc false
+  def request(api_module, method, path, params \\ []) do
+    all_params = Keyword.merge([headers: api_module.headers], params)
+    url = api_module.endpoint <> path
+    api_module.http_client.request(method, url, all_params) |> handle_response
   end
 
   defp handle_response(%HTTPotion.Response{status_code: 200, body: body}) do
