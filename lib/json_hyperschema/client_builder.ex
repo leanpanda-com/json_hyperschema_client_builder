@@ -223,7 +223,44 @@ defmodule JSONHyperschema.ClientBuilder do
         end
       end
 
+      method_name = method |> to_string |> String.upcase
+      action_docs = """
+      Calls `#{method_name} #{path}`
+      """
+
+      action_docs = if body_schema do
+        if has_body?(method) do
+          action_docs <> """
+
+          `params` is JSON encoded and passed as the request body.
+          """
+        else
+          action_docs <> """
+
+          `params` is added to the URL as query parameters.
+          """
+        end
+      else
+        action_docs
+      end
+
+      action_docs = if body_schema do
+        action_docs <> """
+
+        ## params Schema
+
+        ```json
+        #{JSX.encode!(body_schema, space: 1, indent: 2)}
+        ```
+        """
+      else
+        action_docs
+      end
+
       # 3. Finally, we can define the actual function:
+
+      Module.put_attribute(__MODULE__, :doc, {1, action_docs}, [])
+
       def unquote(:"#{name}")(unquote_splicing(method_params)) do
         unquote(path_assignment)
         unquote(validation_and_call)
