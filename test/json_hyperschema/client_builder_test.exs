@@ -6,7 +6,6 @@ defmodule TestData do
   def good_schema do
     good_schema_pathname = Path.join(fixtures_path, "good_schema.json")
     File.read!(good_schema_pathname)
-    |> JSX.decode!
   end
 
   def thing_data do
@@ -21,28 +20,28 @@ defmodule TestData do
   def bad_data, do: %{"data" => %{"ciao" => "hello"}}
 
   def no_endpoint_schema do
-    %{
+    JSX.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
       "definitions" => %{}
-    }
+    })
   end
 
   def no_definitions_schema do
-    %{
+    JSX.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
       "links" => [%{"rel" => "self", "href" => endpoint}]
-    }
+    })
   end
 
   def no_links_error do
-    %{
+    JSX.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
       "links" => [%{"rel" => "self", "href" => endpoint}],
       "definitions" => %{
         "thing" => %{
         }
       }
-    }
+    })
   end
 
   def thing_id, do: 123
@@ -66,8 +65,7 @@ defmodule TestClientBuilder do
   import JSONHyperschema.ClientBuilder
 
   def build(schema) do
-    json = JSX.encode!(schema)
-    defapi "My.Client", json
+    defapi "My.Client", schema
   end
 end
 
