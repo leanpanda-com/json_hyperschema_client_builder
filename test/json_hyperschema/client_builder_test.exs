@@ -63,6 +63,10 @@ defmodule TestData do
 
   def response_body, do: JSX.encode!(response_content)
 
+  def missing_content, do: %{"message" => "missing"}
+
+  def missing_body, do: JSX.encode!(missing_content)
+
   def set_fake_client(client) do
     Application.put_env(
       :json_hyperschema_client_builder,
@@ -81,9 +85,30 @@ defmodule TestClientBuilder do
 end
 
 defmodule FakeHTTPClient do
+  import TestData
+
   def request(method, url, options) do
     send self, {__MODULE__, :request, {method, url, options}}
-    %HTTPotion.Response{status_code: 200, body: TestData.response_body}
+    %HTTPotion.Response{status_code: 200, body: response_body}
+  end
+end
+
+defmodule FakeHTTP404Client do
+  import TestData
+
+  def request(method, url, options) do
+    send self, {__MODULE__, :request, {method, url, options}}
+    %HTTPotion.Response{status_code: 404, body: missing_body}
+  end
+end
+
+defmodule FakeHTTPTimeoutClient do
+  import TestData
+
+  def request(method, url, options) do
+    send self, {__MODULE__, :request, {method, url, options}}
+
+    %HTTPotion.ErrorResponse{message: "Timeout"}
   end
 end
 
@@ -97,7 +122,11 @@ defmodule JSONHyperschema.ClientBuilderTest do
       nil   -> TestClientBuilder.build(good_schema)
       _     -> TestClientBuilder.build(context[:schema])
     end
-    if context[:http], do: set_fake_client(FakeHTTPClient)
+    case context[:client] do
+      :none -> nil
+      nil   -> set_fake_client(FakeHTTPClient)
+      _     -> set_fake_client(context[:client])
+    end
 
     on_exit fn ->
       if context[:schema] != :none do
@@ -162,7 +191,6 @@ defmodule JSONHyperschema.ClientBuilderTest do
     ]
   end
 
-  @tag :http
   test "it extracts the endpoint from the schema" do
     My.Client.Thing.index
 
@@ -171,21 +199,18 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert String.starts_with?(url, endpoint)
   end
 
-  @tag :http
   test "it calls the endpoint" do
     My.Client.Thing.create(thing_data)
 
     assert_receive {FakeHTTPClient, :request, _}, 100
   end
 
-  @tag :http
   test "it uses the correct HTTP verb" do
     My.Client.Thing.create(thing_data)
 
     assert_receive {FakeHTTPClient, :request, {:post, _, _}}, 100
   end
 
-  @tag :http
   test "it inserts URL parameters" do
     My.Client.Thing.update(thing_id, thing_data)
 
@@ -194,7 +219,6 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert url == "#{endpoint}/things/#{thing_id}"
   end
 
-  @tag :http
   test "it handles multiple URL parameters" do
     My.Client.Part.update(thing_id, part_id, part_data)
 
@@ -203,7 +227,6 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert url == "#{endpoint}/things/#{thing_id}/parts/#{part_id}"
   end
 
-  @tag :http
   test "it adds query parameters" do
     My.Client.Thing.index(%{"filter[query]" => "bar"})
 
@@ -211,12 +234,10 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert String.ends_with?(url, "?filter%5Bquery%5D=bar")
   end
 
-  @tag :http
   test "if the query has no required parameters, params are optional" do
     My.Client.Thing.index
   end
 
-  @tag :http
   test "it sends the JSON body" do
     My.Client.Thing.create(thing_data)
 
@@ -224,12 +245,22 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert parameters[:body] == JSX.encode!(thing_data)
   end
 
-  @tag :http
   test "it returns OK if the call succeeds" do
     {:ok, _} = My.Client.Thing.create(thing_data)
   end
 
-  @tag :http
+  @tag client: FakeHTTP404Client
+  test "it handles 404" do
+    {:error, message} = My.Client.Thing.index
+    assert message == missing_content
+  end
+
+  @tag client: FakeHTTPTimeoutClient
+  test "it handles HTTP transport errors" do
+    {:error, message} = My.Client.Thing.index
+    assert message == "Timeout"
+  end
+
   test "it returns the JSON-decoded response body" do
     {:ok, body} = My.Client.Thing.index(%{"filter[query]" => "bar"})
 
