@@ -33,8 +33,8 @@ defmodule JSONHyperschema.ClientBuilder.Mixfile do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:ex_json_schema, "~> 0.5.1"},
-      {:httpotion, "~> 3.0.0"},
-      {:json, "~> 0.3.3"}
+      {:exjsx, "~> 3.2.0"},
+      {:httpotion, "~> 3.0.0"}
     ]
   end
 end

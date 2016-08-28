@@ -148,7 +148,7 @@ defmodule JSONHyperschema.ClientBuilder do
       request_call = if params_var && has_body?(method) do
         # Pass the JSON-encoded params as the request body
         quote do
-          body_json = JSON.encode!(unquote(params_var))
+          body_json = JSX.encode!(unquote(params_var))
           request(unquote(api_module), unquote(method), path, body: body_json)
         end
       else
@@ -186,7 +186,7 @@ defmodule JSONHyperschema.ClientBuilder do
 
   def load_schema(json) do
     {:ok, schema} = make_schema_draft4_compatible(json)
-    |> JSON.decode
+    |> JSX.decode
     schema
   end
 
@@ -270,13 +270,13 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   defp handle_response(%HTTPotion.Response{status_code: 200, body: body}) do
-    {:ok, JSON.decode!(body)["data"]}
+    {:ok, JSX.decode!(body)["data"]}
   end
   defp handle_response(%HTTPotion.Response{status_code: 201, body: body}) do
-    {:ok, JSON.decode!(body)["data"]}
+    {:ok, JSX.decode!(body)["data"]}
   end
   defp handle_response(%HTTPotion.Response{status_code: _status_code, body: body}) do
-    {:error, JSON.decode!(body)["data"]}
+    {:error, JSX.decode!(body)["data"]}
   end
   defp handle_response(%HTTPotion.ErrorResponse{message: message}) do
     {:error, message}

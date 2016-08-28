@@ -6,7 +6,7 @@ defmodule TestData do
   def good_schema do
     good_schema_pathname = Path.join(fixtures_path, "good_schema.json")
     File.read!(good_schema_pathname)
-    |> JSON.decode!
+    |> JSX.decode!
   end
 
   def thing_data do
@@ -51,7 +51,7 @@ defmodule TestData do
 
   def response_content, do: %{"data" => response_data}
 
-  def response_body, do: JSON.encode!(response_content)
+  def response_body, do: JSX.encode!(response_content)
 
   def set_fake_client(client) do
     Application.put_env(
@@ -66,7 +66,7 @@ defmodule TestClientBuilder do
   import JSONHyperschema.ClientBuilder
 
   def build(schema) do
-    json = JSON.encode!(schema)
+    json = JSX.encode!(schema)
     defapi "My.Client", json
   end
 end
@@ -197,7 +197,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
     My.Client.Thing.create(thing_data)
 
     assert_receive {FakeHTTPClient, :request, {:post, _, parameters}}, 100
-    assert parameters[:body] == JSON.encode!(thing_data)
+    assert parameters[:body] == JSX.encode!(thing_data)
   end
 
   @tag :http
