@@ -296,6 +296,15 @@ defmodule JSONHyperschema.ClientBuilderTest do
   end
 
   @tag :http
+  test "it extracts the endpoint from the schema" do
+    My.Client.Thing.index
+
+    assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
+
+    assert String.starts_with?(url, endpoint)
+  end
+
+  @tag :http
   test "it calls the endpoint" do
     My.Client.Thing.create(thing_data)
 
@@ -310,11 +319,12 @@ defmodule JSONHyperschema.ClientBuilderTest do
   end
 
   @tag :http
-  test "it sends the JSON body" do
-    My.Client.Thing.create(thing_data)
+  test "it inserts URL parameters" do
+    My.Client.Thing.update(thing_id, thing_data)
 
-    assert_receive {FakeHTTPClient, :request, {:post, _, parameters}}, 100
-    assert parameters[:body] == JSON.encode!(thing_data)
+    assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
+
+    assert url == "#{endpoint}/things/#{thing_id}"
   end
 
   @tag :http
@@ -331,6 +341,14 @@ defmodule JSONHyperschema.ClientBuilderTest do
   end
 
   @tag :http
+  test "it sends the JSON body" do
+    My.Client.Thing.create(thing_data)
+
+    assert_receive {FakeHTTPClient, :request, {:post, _, parameters}}, 100
+    assert parameters[:body] == JSON.encode!(thing_data)
+  end
+
+  @tag :http
   test "it returns OK if the call succeeds" do
     {:ok, _} = My.Client.Thing.create(thing_data)
   end
@@ -340,23 +358,5 @@ defmodule JSONHyperschema.ClientBuilderTest do
     {:ok, body} = My.Client.Thing.index(%{"filter[query]" => "bar"})
 
     assert body == response_data
-  end
-
-  @tag :http
-  test "it extracts the endpoint from the schema" do
-    My.Client.Thing.update(thing_id, thing_data)
-
-    assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
-
-    assert String.starts_with?(url, endpoint)
-  end
-
-  @tag :http
-  test "it inserts URL parameters" do
-    My.Client.Thing.update(thing_id, thing_data)
-
-    assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
-
-    assert url == "#{endpoint}/things/#{thing_id}"
   end
 end
