@@ -8,11 +8,24 @@ defmodule TestData do
     File.read!(good_schema_pathname)
   end
 
+  def thing_id, do: 123
+
   def thing_data do
     %{
       "data" => %{
         "type" => "thing",
         "attributes" => %{"weight" => 22}
+      }
+    }
+  end
+
+  def part_id, do: 456
+
+  def part_data do
+    %{
+      "data" => %{
+        "type" => "part",
+        "attributes" => %{"name" => "leg"}
       }
     }
   end
@@ -43,8 +56,6 @@ defmodule TestData do
       }
     })
   end
-
-  def thing_id, do: 123
 
   def response_data, do: %{"ciao" => "hello"}
 
@@ -90,10 +101,10 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
     on_exit fn ->
       if context[:schema] != :none do
-        :code.purge(My.Client)
-        :code.purge(My.Client.Thing)
-        :code.delete(My.Client)
-        :code.delete(My.Client.Thing)
+        for mod <- [My.Client, My.Client.Thing, My.Client.Part] do
+          :code.purge(mod)
+          :code.delete(mod)
+        end
       end
     end
 
@@ -135,8 +146,10 @@ defmodule JSONHyperschema.ClientBuilderTest do
   end
 
   test "it defines functions for each link" do
-    functions = My.Client.Thing.__info__(:functions)
-    assert functions == [create: 1, index: 0, index: 1, update: 2]
+    thing_functions = My.Client.Thing.__info__(:functions)
+    assert thing_functions == [create: 1, index: 0, index: 1, update: 2]
+    part_functions = My.Client.Part.__info__(:functions)
+    assert part_functions == [update: 3]
   end
 
   test "it validates the supplied body against the schema" do
@@ -179,6 +192,15 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
 
     assert url == "#{endpoint}/things/#{thing_id}"
+  end
+
+  @tag :http
+  test "it handles multiple URL parameters" do
+    My.Client.Part.update(thing_id, part_id, part_data)
+
+    assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
+
+    assert url == "#{endpoint}/things/#{thing_id}/parts/#{part_id}"
   end
 
   @tag :http

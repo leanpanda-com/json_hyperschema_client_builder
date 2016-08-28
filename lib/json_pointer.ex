@@ -18,7 +18,7 @@ defmodule JSONPointer do
       |> URI.decode
       ["#" | ref] = String.split(uri, "/")
       resolved_path = resolve_ref([:root] ++ ref, schema)
-      name = hd(Enum.reverse(resolved_path))
+      name = path_to_name(resolved_path)
       do_parse(schema, parts, ["\#{" <> name <> "}"|rpath], [:"#{name}"|rparams])
     else
       do_parse(schema, parts, [element|rpath], rparams)
@@ -32,6 +32,14 @@ defmodule JSONPointer do
     else
       ref
     end
+  end
+
+  defp path_to_name([:root, "definitions", type, "definitions", attribute]) do
+    "#{type}_#{attribute}"
+  end
+  defp path_to_name([:root|rest]) do
+    joined = Enum.join(rest, ", ")
+    raise ArgumentError, message: "Don't know how to transform #{joined} into a name"
   end
 
   defp is_ref?(node) do

@@ -146,6 +146,84 @@
         "type": {"$ref": "#/definitions/thing/definitions/type"}
       },
       "required": ["type", "id", "attributes"]
+    },
+    "part": {
+      "title": "Part",
+      "type": "object",
+      "description": "A constituent of a thing",
+      "additionalProperties": false,
+      "definitions": {
+        "attributes": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "JSON API attributes",
+          "properties": {
+            "name": {
+              "description": "The name of the part",
+              "example": "top",
+              "type": "string"
+            }
+          },
+          "required": ["name"]
+        },
+        "id": {
+          "description": "ID of the part",
+          "example": "124",
+          "type": "string"
+        },
+        "identity": {
+          "$ref": "#/definitions/part/properties/id"
+        },
+        "type": {
+          "description": "JSON API type part",
+          "example": "part",
+          "pattern": "^part$",
+          "type": ["string"]
+        }
+      },
+      "links": [
+        {
+          "title": "Update",
+          "rel": "update",
+          "description": "Update a thing",
+          "href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}/parts/{(%23%2Fdefinitions%2Fpart%2Fdefinitions%2Fidentity)}",
+          "method": "PUT",
+          "schema": {
+            "additionalProperties": false,
+            "properties": {
+              "data": {
+                "additionalProperties": false,
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/definitions/part/definitions/attributes"
+                  },
+                  "type": {
+                    "$ref": "#/definitions/part/definitions/type"
+                  }
+                },
+                "required": ["type", "attributes"],
+                "type": "object"
+              }
+            },
+            "required": ["data"],
+            "type": "object"
+          },
+          "targetSchema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "data": {"$ref": "#/definitions/part"}
+            },
+            "required": ["data"]
+          }
+        }
+      ],
+      "properties": {
+        "attributes": {"$ref": "#/definitions/part/definitions/attributes"},
+        "id": {"$ref": "#/definitions/part/definitions/id"},
+        "type": {"$ref": "#/definitions/part/definitions/type"}
+      },
+      "required": ["type", "id", "attributes"]
     }
   }
 }
