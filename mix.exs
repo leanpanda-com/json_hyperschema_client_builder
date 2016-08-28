@@ -24,7 +24,10 @@ defmodule JSONHyperschema.ClientBuilder.Mixfile do
   defp package do
     %{
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/cantierecreativo/json_hyperschema_client_builder"},
+      links: %{
+        "GitHub" =>
+        "https://github.com/cantierecreativo/json_hyperschema_client_builder"
+      },
       maintainers: ["Joe Yates"]
     }
   end
