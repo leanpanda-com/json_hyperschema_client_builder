@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-04/hyper-schema",
+  "links": [
+    {
+      "href": "http://api.example.com",
+      "rel": "self"
+    }
+  ],
+  "definitions": {
+    "thing": {
+      "title": "Thing",
+      "type": "object",
+      "description": "A thing is a physical object",
+      "additionalProperties": false,
+      "definitions": {
+        "attributes": {
+          "additionalProperties": false,
+          "description": "JSON API attributes",
+          "properties": {
+            "weight": {
+              "description": "The weight of the thing in kg",
+              "example": 10,
+              "type": "integer"
+            }
+          },
+          "required": ["weight"],
+          "type": "object"
+        },
+        "id": {
+          "description": "ID of thing",
+          "example": "124",
+          "type": "string"
+        },
+        "identity": {
+          "$ref": "#/definitions/thing/properties/id"
+        },
+        "type": {
+          "description": "JSON API type thing",
+          "example": "thing",
+          "pattern": "^thing",
+          "type": ["string"]
+        }
+      },
+      "links": [
+        {
+          "description": "Do something general",
+          "href": "/things",
+          "method": "POST",
+          "rel": "self",
+          "targetSchema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "data": {"$ref": "#/definitions/thing"}
+            },
+            "required": ["data"]
+          }
+        },
+        {
+          "description": "Do something specific",
+          "href": "/things/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fidentity)}",
+          "method": "POST",
+          "rel": "self",
+          "targetSchema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "data": {"$ref": "#/definitions/thing"}
+            },
+            "required": ["data"]
+          }
+        }
+      ],
+      "properties": {
+        "attributes": {"$ref": "#/definitions/thing/definitions/attributes"},
+        "id": {"$ref": "#/definitions/thing/definitions/id"},
+        "type": {"$ref": "#/definitions/thing/definitions/type"}
+      },
+      "required": ["type", "id", "attributes"]
+    }
+  }
+}

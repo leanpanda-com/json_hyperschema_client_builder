@@ -8,6 +8,11 @@ defmodule TestData do
     File.read!(good_schema_pathname)
   end
 
+  def duplicate_rels_schema do
+    duplicate_rels_pathname = Path.join(fixtures_path, "duplicate_rels_schema.json")
+    File.read!(duplicate_rels_pathname)
+  end
+
   def thing_id, do: 123
 
   def thing_data do
@@ -171,6 +176,12 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert thing_functions == [create: 1, index: 0, index: 1, update: 2]
     part_functions = My.Client.Part.__info__(:functions)
     assert part_functions == [update: 3]
+  end
+
+  @tag schema: duplicate_rels_schema
+  test "it creates unique function names" do
+    thing_functions = My.Client.Thing.__info__(:functions)
+    assert thing_functions == [post_1: 0, post_2: 1]
   end
 
   test "it validates the supplied body against the schema" do

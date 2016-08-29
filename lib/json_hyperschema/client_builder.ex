@@ -108,13 +108,14 @@ defmodule JSONHyperschema.ClientBuilder do
         |> Stream.with_index
         |> Enum.each(
           fn ({action, i}) ->
-            %{"href" => href, "rel" => rel} = action
             # the default value for method is "GET"
             # v. http://json-schema.org/latest/json-schema-hypermedia.\
             # html#anchor36
             method = Map.get(action, "method", "GET")
+            href = action["href"]
             {uri_path, params} = JSONPointer.parse(href, schema)
             http_method = to_method(method)
+            action_name = unique_action_name(action, links)
             body_schema = if Map.has_key?(action, "schema") do
               # Get a micro schema for the call parameters
               action_schema_ref = resource_ref ++ ["links", i, "schema"]
@@ -124,7 +125,7 @@ defmodule JSONHyperschema.ClientBuilder do
             end
             defaction(
               api_module,
-              http_method, to_action_name(rel), uri_path, params,
+              http_method, action_name, uri_path, params,
               body_schema
             )
           end
@@ -317,10 +318,25 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   @doc false
-  def to_action_name("self"), do: "get"
-  def to_action_name("instances"), do: "index"
-  def to_action_name(phrase) do
-    phrase
+  def unique_action_name(action, actions) do
+    others = Enum.filter(actions, fn (a) -> !Map.equal?(a, action) end)
+    this_basic = basic_action_name(action)
+    other_basic = Enum.map(others, fn (a) -> basic_action_name(a) end)
+    found = Enum.find(other_basic, fn (r) -> r == this_basic end)
+    case found do
+      nil -> this_basic
+      _   ->
+        index = Enum.find_index(actions, fn (a) -> Map.equal?(a, action) end)
+        this_basic <> "_" <> to_string(index + 1)
+    end
+  end
+
+  @doc false
+  def basic_action_name(%{"rel" => "self", "method" => "GET"}), do: "get"
+  def basic_action_name(%{"rel" => "self", "method" => "POST"}), do: "post"
+  def basic_action_name(%{"rel" => "instances", "method" => "GET"}), do: "index"
+  def basic_action_name(%{"rel" => rel}) do
+    rel
     |> String.split(" ")
     |> Enum.map(&String.downcase(&1))
     |> Enum.join("_")
