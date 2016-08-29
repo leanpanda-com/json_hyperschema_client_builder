@@ -13,6 +13,11 @@ defmodule TestData do
     File.read!(duplicate_rels_pathname)
   end
 
+  def load_schema(name) do
+    pathname = Path.join(fixtures_path, name)
+    File.read!(pathname)
+  end
+
   def thing_id, do: 123
 
   def thing_data do
@@ -134,11 +139,14 @@ defmodule JSONHyperschema.ClientBuilderTest do
     end
 
     on_exit fn ->
-      if context[:schema] != :none do
-        for mod <- [My.Client, My.Client.Thing, My.Client.Part] do
-          :code.purge(mod)
-          :code.delete(mod)
+      modules =
+        case context[:modules] do
+          nil -> [My.Client, My.Client.Thing, My.Client.Part]
+          _   -> context[:modules]
         end
+      for mod <- modules do
+        :code.purge(mod)
+        :code.delete(mod)
       end
     end
 
@@ -169,6 +177,18 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
   test "it defines a module for the each resource" do
     assert Code.ensure_loaded(My.Client.Thing)
+  end
+
+  @tag schema: load_schema("resource_names.json"),
+  modules: [My.Client, My.Client.HyphenatedResource, My.Client.SnakeCase]
+  test "it handles resources with underscores" do
+    assert Code.ensure_loaded(My.Client.SnakeCase)
+  end
+
+  @tag schema: load_schema("resource_names.json"),
+  modules: [My.Client, My.Client.HyphenatedResource, My.Client.SnakeCase]
+  test "it handles resources with hyphens" do
+    assert Code.ensure_loaded(My.Client.HyphenatedResource)
   end
 
   test "it defines functions for each link" do

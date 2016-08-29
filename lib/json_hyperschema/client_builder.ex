@@ -345,6 +345,7 @@ defmodule JSONHyperschema.ClientBuilder do
   @doc false
   def to_module_name(snake_case) do
     snake_case
+    |> String.replace("-", "_")
     |> String.split("_")
     |> Enum.map(&String.capitalize(&1))
     |> Enum.join("")

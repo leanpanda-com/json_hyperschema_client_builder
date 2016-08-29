@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/hyper-schema",
+  "links": [
+    {
+      "href": "http://api.example.com",
+      "rel": "self"
+    }
+  ],
+  "definitions": {
+    "snake_case": {
+      "title": "SnakeCase",
+      "type": "object",
+      "description": "A resource with a snake_case name",
+      "additionalProperties": false
+    },
+    "hyphenated-resource": {
+      "title": "HyphenatedResource",
+      "type": "object",
+      "description": "A resource with a hyphenated name",
+      "additionalProperties": false
+    }
+  }
+}
