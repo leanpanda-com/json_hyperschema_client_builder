@@ -8,10 +8,6 @@ defmodule JSONHyperschema.ClientBuilder do
     defexception message: "the schema does not contain any definitions"
   end
 
-  defmodule MissingLinksError do
-    defexception message: "the definition does not have any links"
-  end
-
   @draft4_hyperschema "http://json-schema.org/draft-04/hyper-schema"
   @draft4_schema "http://json-schema.org/draft-04/schema"
   @interagent_hyperschema "http://interagent.github.io/interagent-hyper-schema"
@@ -56,7 +52,7 @@ defmodule JSONHyperschema.ClientBuilder do
   defmacro defapi(api_module_name, json) do
     quote location: :keep, bind_quoted: binding() do
       unresolved = load_schema(json)
-      ensure_definitions_and_links!(unresolved)
+      ensure_definitions! unresolved
       schema = ExJsonSchema.Schema.resolve(unresolved)
       endpoint_url = JSONHyperschema.Schema.endpoint!(unresolved)
       api_module = :"Elixir.#{api_module_name}"
@@ -106,8 +102,9 @@ defmodule JSONHyperschema.ClientBuilder do
     quote location: :keep, bind_quoted: binding() do
       resource_ref = [:root, "definitions", name]
       resource = ExJsonSchema.Schema.get_ref_schema(schema, resource_ref)
+      links = resource["links"] || []
       defmodule :"#{__MODULE__}.#{to_module_name(name)}" do
-        resource["links"]
+        links
         |> Stream.with_index
         |> Enum.each(
           fn ({action, i}) ->
@@ -286,21 +283,11 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   @doc false
-  def ensure_definitions_and_links!(schema) do
+  def ensure_definitions!(schema) do
     unless has_definitions?(schema), do: raise MissingDefinitionsError
-    Enum.each(
-      schema["definitions"],
-      fn ({name, definition}) ->
-        if !has_links?(definition) do
-          raise MissingLinksError, message: "#{name} definition does not have any links"
-        end
-      end
-    )
   end
 
   defp has_definitions?(schema), do: get_in(schema, ["definitions"])
-
-  defp has_links?(definition), do: get_in(definition, ["links"])
 
   @doc false
   def has_body?(:get), do: false

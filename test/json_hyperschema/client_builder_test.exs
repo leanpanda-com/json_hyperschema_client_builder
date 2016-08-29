@@ -156,14 +156,6 @@ defmodule JSONHyperschema.ClientBuilderTest do
         fn -> TestClientBuilder.build(no_definitions_schema) end
       )
     end
-
-    @tag schema: :none
-    test "it fails if there are no links in a definition" do
-      assert_raise(
-        JSONHyperschema.ClientBuilder.MissingLinksError,
-        fn -> TestClientBuilder.build(no_links_error) end
-      )
-    end
   end
 
   test "it defines a module for the Client" do
