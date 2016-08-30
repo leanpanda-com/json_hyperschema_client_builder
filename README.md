@@ -69,5 +69,8 @@ handles.
 
 ## Similar Projects
 
-* heroics - Generates Ruby code from JSON hyperschemas,
-* ??? - Go
+* [heroics][heroics_home] - Generates Ruby code from JSON hyperschemas,
+* [Schematic][schematic_home] - Generates Go clients from JSON hyperschemas.
+
+[heroics_home]: https://github.com/interagent/heroics
+[schematic_home]: https://github.com/interagent/schematic
