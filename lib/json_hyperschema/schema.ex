@@ -28,31 +28,53 @@ defmodule JSONHyperschema.Schema do
     {:error, "The schema's 'self' link does not include an 'href'"}
   end
 
-  def denormalize_ref(ref, schema) do
-    fragment = ExJsonSchema.Schema.get_ref_schema(schema, ref)
-    do_denormalize(ref, fragment, schema)
-  end
-
-  defp do_denormalize(_ref, %{"$ref" => resolved}, schema) do
-    denormalize_ref(resolved, schema)
-  end
-  defp do_denormalize(
-        ref,
-        attr = %{"type" => "object", "properties" => properties},
-        schema
-      ) do
-    resolved_properties = Enum.reduce(
-      properties,
+  @doc "Removes `links` from all definitions"
+  def to_schema(hyperschema) do
+    simplified = Enum.reduce(
+      hyperschema["definitions"],
       %{},
-      fn({name, prop_attr}, props) ->
-        property_ref = ref ++ ["properties", name]
-        resolved_prop = do_denormalize(property_ref, prop_attr, schema)
-        Map.merge(props, %{name => resolved_prop})
+      fn ({name, definition}, acc) ->
+        simple = remove_links(definition)
+        Map.merge(acc, %{name => simple})
       end
     )
-    %{attr | "properties" => resolved_properties}
+    %{hyperschema | "definitions" => simplified}
   end
-  defp do_denormalize(_ref, attr, _schema) do
+
+  defp remove_links(definition) do
+    Map.delete(definition, "links")
+  end
+
+  def denormalize_fragment(fragment, schema) do
+    do_denormalize(fragment, schema)
+  end
+
+  defp do_denormalize(%{"$ref" => ref}, schema) do
+    fragment = ExJsonSchema.Schema.get_ref_schema(schema, ref)
+    denormalize_fragment(fragment, schema)
+  end
+  defp do_denormalize(attr = %{"type" => type}, _schema) when type == "string" or type == ["string"] do
+    attr
+  end
+  defp do_denormalize(attr, schema) when is_map(attr) do
+    Enum.reduce(
+      attr,
+      %{},
+      fn({name, attr}, acc) ->
+        resolved_key = do_denormalize(attr, schema)
+        Map.merge(acc, %{name => resolved_key})
+      end
+    )
+  end
+  defp do_denormalize(attr, schema) when is_list(attr) do
+    Enum.map(
+      attr,
+      fn(attr) ->
+        do_denormalize(attr, schema)
+      end
+    )
+  end
+  defp do_denormalize(attr, _schema) do
     attr
   end
 end

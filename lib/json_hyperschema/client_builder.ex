@@ -53,8 +53,8 @@ defmodule JSONHyperschema.ClientBuilder do
     quote location: :keep, bind_quoted: binding() do
       unresolved = load_schema(json)
       ensure_definitions! unresolved
-      schema = ExJsonSchema.Schema.resolve(unresolved)
       endpoint_url = JSONHyperschema.Schema.endpoint!(unresolved)
+      resolved_hyperschema = ExJsonSchema.Schema.resolve(unresolved)
       api_module = :"Elixir.#{api_module_name}"
 
       defmodule api_module do
@@ -83,11 +83,13 @@ defmodule JSONHyperschema.ClientBuilder do
         end
 
         definitions_ref = [:root, "definitions"]
-        definitions = ExJsonSchema.Schema.get_ref_schema(schema, definitions_ref)
+        definitions = ExJsonSchema.Schema.get_ref_schema(
+          resolved_hyperschema, definitions_ref
+        )
         Enum.each(
           definitions,
           fn ({resource_name, _definition}) ->
-            defresource api_module, resource_name, schema
+            defresource api_module, resource_name, resolved_hyperschema
           end
         )
       end
@@ -95,33 +97,33 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   @doc """
-  Defines a module for a type (found in a JSON schema definition) and defines a
-  function for each of the type's links (via defaction).
+  Defines a module for a type (found in a JSON hyperschema definition) and
+  defines a function for each of the type's links (via defaction).
   """
-  defmacro defresource(api_module, name, schema) do
+  defmacro defresource(api_module, name, resolved_hyperschema) do
     quote location: :keep, bind_quoted: binding() do
       resource_ref = [:root, "definitions", name]
-      resource = ExJsonSchema.Schema.get_ref_schema(schema, resource_ref)
+      resource = ExJsonSchema.Schema.get_ref_schema(
+        resolved_hyperschema, resource_ref
+      )
       links = resource["links"] || []
+      hyperschema = resolved_hyperschema.schema
+      schema = ExJsonSchema.Schema.resolve(JSONHyperschema.Schema.to_schema(hyperschema))
       defmodule :"#{__MODULE__}.#{to_module_name(name)}" do
         links
-        |> Stream.with_index
         |> Enum.each(
-          fn ({action, i}) ->
+          fn (action) ->
             # the default value for method is "GET"
             # v. http://json-schema.org/latest/json-schema-hypermedia.\
             # html#anchor36
             method = Map.get(action, "method", "GET")
             href = action["href"]
-            {uri_path, params} = JSONPointer.parse(href, schema)
+            {uri_path, params} = JSONPointer.parse(href, resolved_hyperschema)
             http_method = to_method(method)
             action_name = unique_action_name(action, links)
             body_schema = if Map.has_key?(action, "schema") do
               # Get a micro schema for the call parameters
-              action_schema_ref = resource_ref ++ ["links", i, "schema"]
-              JSONHyperschema.Schema.denormalize_ref(
-                action_schema_ref, schema
-              )
+              JSONHyperschema.Schema.denormalize_fragment(action["schema"], schema)
             end
             defaction(
               api_module,
