@@ -2,7 +2,17 @@
 
 Creates an HTTP Client based on a JSON Hyperschema.
 
-Usage:
+# Installation
+
+1. Add `json_hyperschema_client_builder` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [{:json_hyperschema_client_builder, "~> 0.6.0"}]
+end
+```
+
+# Usage
 
 ```elixir
 defapi "My.Client", schema_json
@@ -20,14 +30,25 @@ the final parameter is `body`, which is sent as the body of the HTTP request.
 The body is checked against the schema before being sent, and the function
 returns a tuple with `{:error, [...messages...]}` if it is not valid.
 
-## Installation
+## Authentication
 
-1. Add `json_hyperschema_client_builder` to your list of dependencies in `mix.exs`:
+Currently only one schema of authentication is implemented: OAuth 2.0 bearer
+tokens.
 
-```elixir
-def deps do
-  [{:json_hyperschema_client_builder, "~> 0.1.0"}]
-end
+Inside your project's config, you can set the token on the generated model:
+
+```
+config :json_hyperschema_client_builder, My.Client,
+  access_token: "secret"
+```
+
+If you implement a login system, you can set the token at run time:
+
+```
+token = ...
+Application.put_env(
+  :json_hyperschema_client_builder, My.Client, %{access_token: token}
+)
 ```
 
 # Implementation
