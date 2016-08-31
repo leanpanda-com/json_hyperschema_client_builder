@@ -1,11 +1,19 @@
 defmodule JSONPointer do
-  def parse(href, schema) do
-    parts = String.split(href, "/")
+  @doc """
+  Takes a URI, optionally containing JSON pointers, and an ExJsonSchema
+  resolved schema and returns a 2-element tuple containing a path template,
+  and the variables to insert in the template.
+
+  > parse(
+    "/foo/{(%23%2Fdefinitions%2Fthing%2Fdefinitions%2Fweight)}/bar", schema
+  )
+  {"/foo/\#{bar}", [:bar]}
+  """
+  def parse(uri, schema) do
+    parts = String.split(uri, "/")
     do_parse(schema, parts, [], [])
   end
 
-  # TODO: document this, including refs to JSON schema docs
-  # returns {"/foo/#{bar}", [:foo]}
   defp do_parse(_schema, [], [], _rparams) do
     {"/", []}
   end
@@ -36,10 +44,12 @@ defmodule JSONPointer do
 
   defp path_to_name([:root, "definitions", type, "definitions", attribute]) do
     "#{type}_#{attribute}"
+    |> String.replace("-", "_")
   end
   defp path_to_name([:root|rest]) do
-    joined = Enum.join(rest, ", ")
-    raise ArgumentError, message: "Don't know how to transform #{joined} into a name"
+    joined = "#/" <> Enum.join(rest, "/")
+    message = "Don't know how to transform '#{joined}' into a name"
+    raise ArgumentError, message: message
   end
 
   defp is_ref?(node) do

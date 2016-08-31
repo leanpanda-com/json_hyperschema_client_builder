@@ -1,4 +1,4 @@
-defmodule TestData do
+defmodule JSONHyperschema.ClientBuilderTestData do
   def endpoint, do: "http://api.example.com"
 
   def fixtures_path, do: Path.join("test", "fixtures")
@@ -95,7 +95,7 @@ defmodule TestClientBuilder do
 end
 
 defmodule FakeHTTPClient do
-  import TestData
+  import JSONHyperschema.ClientBuilderTestData
 
   def request(method, url, options) do
     send self, {__MODULE__, :request, {method, url, options}}
@@ -104,7 +104,7 @@ defmodule FakeHTTPClient do
 end
 
 defmodule FakeHTTP404Client do
-  import TestData
+  import JSONHyperschema.ClientBuilderTestData
 
   def request(method, url, options) do
     send self, {__MODULE__, :request, {method, url, options}}
@@ -113,7 +113,7 @@ defmodule FakeHTTP404Client do
 end
 
 defmodule FakeHTTPTimeoutClient do
-  import TestData
+  import JSONHyperschema.ClientBuilderTestData
 
   def request(method, url, options) do
     send self, {__MODULE__, :request, {method, url, options}}
@@ -124,7 +124,7 @@ end
 
 defmodule JSONHyperschema.ClientBuilderTest do
   use ExUnit.Case, async: true
-  import TestData
+  import JSONHyperschema.ClientBuilderTestData
 
   setup context do
     case context[:schema] do
