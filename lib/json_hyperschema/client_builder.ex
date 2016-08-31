@@ -107,12 +107,14 @@ defmodule JSONHyperschema.ClientBuilder do
         resolved_hyperschema, resource_ref
       )
       links = resource["links"] || []
+      action_names = unique_action_names(links)
       hyperschema = resolved_hyperschema.schema
       schema = ExJsonSchema.Schema.resolve(JSONHyperschema.Schema.to_schema(hyperschema))
       defmodule :"#{__MODULE__}.#{to_module_name(name)}" do
         links
+        |> Stream.with_index
         |> Enum.each(
-          fn (action) ->
+          fn ({action, i}) ->
             # the default value for method is "GET"
             # v. http://json-schema.org/latest/json-schema-hypermedia.\
             # html#anchor36
@@ -120,7 +122,7 @@ defmodule JSONHyperschema.ClientBuilder do
             href = action["href"]
             {uri_path, params} = JSONPointer.parse(href, resolved_hyperschema)
             http_method = to_method(method)
-            action_name = unique_action_name(action, links)
+            action_name = Enum.at(action_names, i)
             body_schema = if Map.has_key?(action, "schema") do
               # Get a micro schema for the call parameters
               JSONHyperschema.Schema.denormalize_fragment(action["schema"], schema)
@@ -320,17 +322,81 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   @doc false
-  def unique_action_name(action, actions) do
-    others = Enum.filter(actions, fn (a) -> !Map.equal?(a, action) end)
-    this_basic = basic_action_name(action)
-    other_basic = Enum.map(others, fn (a) -> basic_action_name(a) end)
-    found = Enum.find(other_basic, fn (r) -> r == this_basic end)
-    case found do
-      nil -> this_basic
-      _   ->
-        index = Enum.find_index(actions, fn (a) -> Map.equal?(a, action) end)
-        this_basic <> "_" <> to_string(index + 1)
-    end
+  # Builds a series of action name candidates for each action
+  # Removes items that are duplicated
+  # Returns the simplest
+  def unique_action_names(actions) do
+    actions
+    |> build_candidates_lists
+    |> remove_nils
+    |> remove_duplicates
+    |> take_first
+  end
+
+  defp build_candidates_lists(actions) do
+    Enum.map(
+      Stream.with_index(actions),
+      fn ({action, i}) ->
+        basic = basic_action_name(action)
+        [
+          basic,
+          name_from_description(action),
+          name_from_title(action),
+          add_position(basic, i) # failsafe
+        ] |> Enum.uniq
+      end
+    )
+  end
+
+  defp remove_nils(lists) do
+    Enum.map(
+      lists,
+      fn (list) ->
+        Enum.filter(list, &(&1))
+      end
+    )
+  end
+
+  defp remove_duplicates(lists) do
+    duplicates = duplicates(lists)
+    Enum.map(
+      lists,
+      fn (list) ->
+        Enum.filter(
+          list,
+          fn (item) -> Enum.find(duplicates, &(&1 == item)) == nil end
+        )
+      end
+    )
+  end
+
+  defp duplicates(lists) do
+    items =
+      lists
+      |> Enum.flat_map(&(&1))
+      |> Enum.sort
+
+    Enum.reduce(
+      items,
+      {[], nil},
+      fn (item, {dupes, previous}) ->
+        if item == previous do
+          {[item | dupes], item}
+        else
+          {dupes, item}
+        end
+      end
+    )
+    |> elem(0)
+    |> Enum.uniq
+  end
+
+  defp take_first(lists) do
+    Enum.map(lists, &hd/1)
+  end
+
+  defp add_position(name, position) do
+    "#{name}_#{position}"
   end
 
   @doc false
@@ -339,8 +405,49 @@ defmodule JSONHyperschema.ClientBuilder do
   def basic_action_name(%{"rel" => "instances", "method" => "GET"}), do: "index"
   def basic_action_name(%{"rel" => rel}) do
     rel
+    |> String.downcase
     |> String.split(" ")
-    |> Enum.map(&String.downcase(&1))
+    |> Enum.join("_")
+  end
+
+  defp name_from_description(%{"description" => description}) do
+    description
+    |> first_phrase
+    |> phrase_to_snake_case
+  end
+  defp name_from_description(_) do
+    nil
+  end
+
+  defp name_from_title(%{"title" => title}) do
+    phrase_to_snake_case(title)
+  end
+  defp name_from_title(_) do
+    nil
+  end
+
+  defp phrase_to_snake_case(phrase) do
+    phrase
+    |> to_lowercase_words
+    |> words_to_snake_case
+  end
+
+  defp first_phrase(text) do
+    text
+    |> String.split(". ")
+    |> hd
+  end
+
+  defp to_lowercase_words(phrase) do
+    phrase
+    |> String.downcase
+    |> String.replace(~r([^a-z ]), "")
+    |> String.strip
+  end
+
+  defp words_to_snake_case(words) do
+    words
+    |> String.split(" ")
     |> Enum.join("_")
   end
 

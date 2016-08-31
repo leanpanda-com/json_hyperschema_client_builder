@@ -201,7 +201,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
   @tag schema: duplicate_rels_schema
   test "it creates unique function names" do
     thing_functions = My.Client.Thing.__info__(:functions)
-    assert thing_functions == [post_1: 0, post_2: 1]
+    assert thing_functions == [do_something_general: 0, do_something_specific: 1]
   end
 
   test "it validates the supplied body against the schema" do
