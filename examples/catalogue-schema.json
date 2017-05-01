@@ -1,0 +1,2776 @@
+{
+  "$schema": "http://interagent.github.io/interagent-hyper-schema",
+  "type": [
+    "object"
+  ],
+  "definitions": {
+    "author": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Author",
+      "description": "An Author represents a writer with some books in the catalogue.",
+      "stability": "prototype",
+      "type": [
+        "object"
+      ],
+      "strictProperties": true,
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "author",
+          "type": [
+            "string"
+          ],
+          "pattern": "^author$"
+        },
+        "id": {
+          "description": "identifier of author",
+          "example": "dave-eggers",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/author/definitions/id"
+            }
+          ]
+        },
+        "name": {
+          "description": "name of author",
+          "example": "Dave Eggers",
+          "type": [
+            "string"
+          ]
+        },
+        "image": {
+          "description": "image of author",
+          "example": "https://www.bookrepublic.it/static/cache/3e/69/3e69bfae62333918578ea2bb8be3f318.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "bio": {
+          "description": "bio of author",
+          "example": "Andrea Camilleri esordisce nel 1978 con \"Il corso delle cose\": pubblicato da un editore a pagamento, è un insuccesso. Nel 1980 pubblica con Garzanti \"Un filo di fumo\", il primo romanzo ambientato nell’immaginario paese di Vigàta e con questo romanzo vince il Premio Gela. Solo dodici anni dopo, nel 1992, pubblica per Sellerio \"La stagione della caccia\". Nel 1994 con \"La forma dell’acqua\" dà vita al personaggio del commissario Montalbano e raggiunge il successo. Tra i premi che gli sono stati conferiti ricordiamo il Premio Campiello 2011 alla Carriera e il Premio Chandler 2011 alla Carriera.",
+          "type": [
+            "string"
+          ]
+        },
+        "link": {
+          "type": [
+            "object"
+          ],
+          "description": "tuple identifying entity",
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/author/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/author/definitions/id"
+            }
+          }
+        },
+        "author_ids": {
+          "description": "array of author identifiers",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/author/definitions/id"
+          }
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/author/definitions/type"
+        },
+        "id": {
+          "$ref": "#/definitions/author/definitions/id"
+        },
+        "name": {
+          "$ref": "#/definitions/author/definitions/name"
+        },
+        "bio": {
+          "$ref": "#/definitions/author/definitions/bio"
+        },
+        "image": {
+          "$ref": "#/definitions/author/definitions/image"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name"
+      ],
+      "links": [
+        {
+          "description": "Info for existing author.",
+          "href": "/authors/{(%23%2Fdefinitions%2Fauthor%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/author/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/author"
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing authors.",
+          "href": "/authors",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "filter[query]": {
+                "description": "textual query to match",
+                "example": "zingaretti",
+                "type": [
+                  "string"
+                ]
+              },
+              "page[offset]": {
+                "description": "index of first item to fetch",
+                "example": 2,
+                "default": 0,
+                "type": [
+                  "integer"
+                ]
+              },
+              "page[limit]": {
+                "description": "number of items to fetch",
+                "example": 15,
+                "default": 25,
+                "type": [
+                  "integer"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/author/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/author"
+                }
+              },
+              "meta": {
+                "type": [
+                  "object"
+                ],
+                "properties": {
+                  "total_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 341
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "book": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Book",
+      "description": "A Book represents a book that is available to users.",
+      "stability": "prototype",
+      "type": [
+        "object"
+      ],
+      "strictProperties": true,
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "book",
+          "type": [
+            "string"
+          ],
+          "pattern": "^book$"
+        },
+        "id": {
+          "description": "id of book",
+          "example": "9788891704207",
+          "type": [
+            "string"
+          ],
+          "pattern": "^978[0-9]{10}$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/book/definitions/id"
+            }
+          ]
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/book/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/book/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "isbn": {
+          "description": "ISBN of book",
+          "example": "9788891704207",
+          "type": [
+            "string"
+          ],
+          "pattern": "^978[0-9]{10}$"
+        },
+        "slug": {
+          "description": "identifier of book for use in URLs",
+          "example": "9788891704207-prova-di-associazione-semantica",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "title": {
+          "description": "title of book",
+          "example": "Prova di associazione semantica",
+          "type": [
+            "string"
+          ]
+        },
+        "translator": {
+          "description": "translator of book",
+          "example": "Mario Begozzi",
+          "type": [
+            "string"
+          ]
+        },
+        "description": {
+          "description": "description of book",
+          "example": "La guida all'impiego di un test fondamentale per valutare le reali capacità di sviluppo cognitivo del bambino. I contesti di applicazione possono essere diversi (educativo, diagnostico, riabilitativo) e le informazioni che se ne possono trarre favoriscono un intervento di supporto nel piccolo anche precocemente.",
+          "type": [
+            "string"
+          ]
+        },
+        "cover_image": {
+          "description": "cover image of book",
+          "example": "https://assets-edgt.cantook.net/assets/publications/38054/medias/front_cover.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "current_price": {
+          "description": "current price of book (in cents)",
+          "example": 1350,
+          "type": [
+            "integer"
+          ]
+        },
+        "base_price": {
+          "description": "base price of book (in cents)",
+          "example": 1750,
+          "type": [
+            "integer"
+          ]
+        },
+        "language": {
+          "description": "language of book",
+          "example": "it",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z]{2}$"
+        },
+        "page_count": {
+          "description": "number of pages for the book",
+          "example": 83,
+          "type": [
+            "integer"
+          ]
+        },
+        "file_szie": {
+          "description": "the file size of the book in bytes",
+          "example": 19200010,
+          "type": [
+            "integer"
+          ]
+        },
+        "format": {
+          "description": "format of ebook",
+          "example": "epub",
+          "type": [
+            "string"
+          ],
+          "enum": [
+            "epub",
+            "pdf",
+            "mobi",
+            "mp3"
+          ]
+        },
+        "device": {
+          "description": "device compatible with ebook",
+          "example": "ios",
+          "type": [
+            "string"
+          ],
+          "enum": [
+            "pc",
+            "android",
+            "ios",
+            "kindle",
+            "kobo",
+            "ereaders"
+          ]
+        },
+        "devices": {
+          "description": "list of devices compatible with the ebook",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/book/definitions/device"
+          }
+        },
+        "drm": {
+          "description": "kind of DRM applied to the ebook",
+          "example": "watermark",
+          "type": [
+            "string"
+          ],
+          "enum": [
+            "none",
+            "watermark",
+            "adobe"
+          ]
+        },
+        "publication_year": {
+          "description": "publication year of book",
+          "example": 2015,
+          "type": [
+            "integer"
+          ]
+        },
+        "created_at": {
+          "description": "when the book was added to the catalogue",
+          "example": "2012-01-01T12:00:00Z",
+          "format": "date-time",
+          "type": [
+            "string"
+          ]
+        },
+        "links": {
+          "description": "entity relations",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "authors": {
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/author/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/author/definitions/author_ids"
+                }
+              }
+            },
+            "categories": {
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/category/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/category/definitions/category_ids"
+                }
+              }
+            },
+            "alternative_formats": {
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/book/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/book/definitions/book_ids"
+                }
+              }
+            }
+          },
+          "additionalProperties": {
+            "publisher": {
+              "$ref": "#/definitions/publisher/definitions/link"
+            }
+          }
+        },
+        "book_ids": {
+          "description": "array of book identifiers",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/book/definitions/id"
+          }
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/book/definitions/type"
+        },
+        "id": {
+          "$ref": "#/definitions/book/definitions/id"
+        },
+        "isbn": {
+          "$ref": "#/definitions/book/definitions/isbn"
+        },
+        "title": {
+          "$ref": "#/definitions/book/definitions/title"
+        },
+        "base_price": {
+          "$ref": "#/definitions/book/definitions/base_price"
+        },
+        "current_price": {
+          "$ref": "#/definitions/book/definitions/current_price"
+        },
+        "description": {
+          "$ref": "#/definitions/book/definitions/description"
+        },
+        "language": {
+          "$ref": "#/definitions/book/definitions/language"
+        },
+        "format": {
+          "$ref": "#/definitions/book/definitions/format"
+        },
+        "devices": {
+          "$ref": "#/definitions/book/definitions/devices"
+        },
+        "drm": {
+          "$ref": "#/definitions/book/definitions/drm"
+        },
+        "created_at": {
+          "$ref": "#/definitions/book/definitions/created_at"
+        },
+        "links": {
+          "$ref": "#/definitions/book/definitions/links"
+        }
+      },
+      "additionalProperties": {
+        "page_count": {
+          "$ref": "#/definitions/book/definitions/page_count"
+        },
+        "publication_year": {
+          "$ref": "#/definitions/book/definitions/publication_year"
+        },
+        "translator": {
+          "$ref": "#/definitions/book/definitions/translator"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "isbn",
+        "title",
+        "base_price",
+        "current_price",
+        "language",
+        "format",
+        "drm",
+        "links",
+        "created_at",
+        "devices"
+      ],
+      "links": [
+        {
+          "description": "Info for existing book.",
+          "href": "/books/{(%23%2Fdefinitions%2Fbook%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/book/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing books.",
+          "href": "/books",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "filter[query]": {
+                "description": "textual query to match",
+                "example": "manuale",
+                "type": [
+                  "string"
+                ]
+              },
+              "filter[authors]": {
+                "description": "filter by authors",
+                "$ref": "#/definitions/author/definitions/author_ids"
+              },
+              "filter[book]": {
+                "description": "filter by ISBN",
+                "$ref": "#/definitions/book/definitions/book_ids"
+              },
+              "filter[category]": {
+                "description": "filter by category",
+                "$ref": "#/definitions/category/definitions/id"
+              },
+              "filter[device]": {
+                "description": "filter by device",
+                "$ref": "#/definitions/book/definitions/devices"
+              },
+              "filter[format]": {
+                "description": "filter by format",
+                "$ref": "#/definitions/book/definitions/format"
+              },
+              "filter[language]": {
+                "description": "filter by language",
+                "$ref": "#/definitions/book/definitions/language"
+              },
+              "filter[publisher]": {
+                "description": "filter by publisher",
+                "$ref": "#/definitions/publisher/definitions/id"
+              },
+              "filter[free]": {
+                "description": "return free books",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "true",
+                  "false"
+                ],
+                "example": "true"
+              },
+              "filter[in_promo]": {
+                "description": "return books with reductions",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "true",
+                  "false"
+                ],
+                "example": "true"
+              },
+              "filter[cheap]": {
+                "description": "return free books and books with reductions",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "true",
+                  "false"
+                ],
+                "example": "true"
+              },
+              "filter[drm_free]": {
+                "description": "filter by drm",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "true",
+                  "false"
+                ],
+                "example": "true"
+              },
+              "sort": {
+                "description": "sorting criteria",
+                "example": "+price",
+                "default": "-popularity",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "+price",
+                  "-created_at",
+                  "-popularity",
+                  "-score"
+                ]
+              },
+              "page[offset]": {
+                "description": "index of first item to fetch",
+                "example": 2,
+                "default": 1,
+                "type": [
+                  "integer"
+                ]
+              },
+              "page[limit]": {
+                "description": "number of items to fetch",
+                "example": 15,
+                "default": 25,
+                "type": [
+                  "integer"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/book/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              },
+              "meta": {
+                "type": [
+                  "object"
+                ],
+                "properties": {
+                  "total_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 341
+                  },
+                  "free_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 123
+                  },
+                  "in_promo_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 214
+                  },
+                  "cheap_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 123
+                  },
+                  "drm_free_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 142
+                  },
+                  "category_facets": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "type": [
+                        "object"
+                      ],
+                      "properties": {
+                        "category": {
+                          "$ref": "#/definitions/category/definitions/link"
+                        },
+                        "count": {
+                          "type": [
+                            "integer"
+                          ],
+                          "example": 10
+                        }
+                      }
+                    }
+                  },
+                  "publisher_facets": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "type": [
+                        "object"
+                      ],
+                      "properties": {
+                        "publisher": {
+                          "$ref": "#/definitions/publisher/definitions/link"
+                        },
+                        "count": {
+                          "type": [
+                            "integer"
+                          ],
+                          "example": 21
+                        }
+                      }
+                    }
+                  },
+                  "language_facets": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "type": [
+                        "object"
+                      ],
+                      "properties": {
+                        "language": {
+                          "$ref": "#/definitions/book/definitions/language"
+                        },
+                        "count": {
+                          "type": [
+                            "integer"
+                          ],
+                          "example": 9
+                        }
+                      }
+                    }
+                  },
+                  "device_facets": {
+                    "type": [
+                      "array"
+                    ],
+                    "items": {
+                      "type": [
+                        "object"
+                      ],
+                      "properties": {
+                        "device": {
+                          "$ref": "#/definitions/book/definitions/device"
+                        },
+                        "count": {
+                          "type": [
+                            "integer"
+                          ],
+                          "example": 9
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "category": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Category",
+      "description": "A Category groups a number of books within in the catalogue.",
+      "stability": "prototype",
+      "type": [
+        "object"
+      ],
+      "strictProperties": true,
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "category",
+          "type": [
+            "string"
+          ],
+          "pattern": "^category$"
+        },
+        "id": {
+          "description": "identifier of category",
+          "example": "la-cultura-del-cibo",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/category/definitions/id"
+            }
+          ]
+        },
+        "slug": {
+          "description": "unique identifier of category for use in URLs",
+          "example": "345-beer",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "name": {
+          "description": "name of category",
+          "example": "La cultura del cibo",
+          "type": [
+            "string"
+          ]
+        },
+        "links": {
+          "description": "entity relations",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "subcategories": {
+              "$ref": "#/definitions/category/definitions/subcategories"
+            },
+            "most_popular_books": {
+              "description": "the best selling books in the category",
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/book/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/book/definitions/book_ids"
+                }
+              }
+            }
+          },
+          "additionalProperties": {
+            "parent": {
+              "$ref": "#/definitions/category/definitions/parent"
+            }
+          }
+        },
+        "subcategories": {
+          "description": "array of children categories",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/category/definitions/type"
+            },
+            "ids": {
+              "$ref": "#/definitions/category/definitions/subcategory_ids"
+            }
+          }
+        },
+        "parent": {
+          "description": "the parent category",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/category/definitions/type"
+            },
+            "ids": {
+              "$ref": "#/definitions/category/definitions/id"
+            }
+          }
+        },
+        "category_ids": {
+          "description": "array of category ids",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/category/definitions/id"
+          }
+        },
+        "subcategory_ids": {
+          "description": "array of child category ids",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/category/definitions/id"
+          }
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/category/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/category/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/category/definitions/id"
+        },
+        "slug": {
+          "$ref": "#/definitions/category/definitions/slug"
+        },
+        "type": {
+          "$ref": "#/definitions/category/definitions/type"
+        },
+        "name": {
+          "$ref": "#/definitions/category/definitions/name"
+        },
+        "links": {
+          "$ref": "#/definitions/category/definitions/links"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "slug",
+        "name",
+        "links"
+      ],
+      "links": [
+        {
+          "description": "Info for existing category.",
+          "href": "/categories/{(%23%2Fdefinitions%2Fcategory%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/category/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/category"
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing categories.",
+          "href": "/categories",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "filter[root]": {
+                "description": "only return root categories",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "true"
+                ],
+                "example": "true"
+              },
+              "page[offset]": {
+                "description": "index of first item to fetch",
+                "example": 2,
+                "default": 1,
+                "type": [
+                  "integer"
+                ]
+              },
+              "page[limit]": {
+                "description": "number of items to fetch",
+                "example": 15,
+                "default": 25,
+                "type": [
+                  "integer"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/category/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/category"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "image": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Image",
+      "description": "An Image is a picture of something.",
+      "stability": "prototype",
+      "type": [
+        "object"
+      ],
+      "strictProperties": true,
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "image",
+          "type": [
+            "string"
+          ],
+          "pattern": "^image$"
+        },
+        "id": {
+          "description": "identifier of image",
+          "example": "1234",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/image/definitions/id"
+            }
+          ]
+        },
+        "url": {
+          "description": "url of image",
+          "example": "https://www.example.com/images/ciao.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "caption": {
+          "description": "caption of image",
+          "example": "Cool pic",
+          "type": [
+            "string"
+          ]
+        },
+        "position": {
+          "description": "ordinal position of the image compared to its peers",
+          "example": 0,
+          "type": [
+            "integer"
+          ]
+        },
+        "link": {
+          "type": [
+            "object"
+          ],
+          "description": "tuple identifying entity",
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/image/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/image/definitions/id"
+            }
+          }
+        },
+        "image_ids": {
+          "description": "array of image identifiers",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/image/definitions/id"
+          }
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/image/definitions/type"
+        },
+        "id": {
+          "$ref": "#/definitions/image/definitions/id"
+        },
+        "url": {
+          "$ref": "#/definitions/image/definitions/url"
+        },
+        "caption": {
+          "$ref": "#/definitions/image/definitions/caption"
+        },
+        "position": {
+          "$ref": "#/definitions/image/definitions/position"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "url"
+      ],
+      "links": [
+      ]
+    },
+    "narrative": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Narrative",
+      "description": "A narrative describes a collection of books",
+      "stability": "prototype",
+      "strictProperties": true,
+      "type": [
+        "object"
+      ],
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "narrative",
+          "type": [
+            "string"
+          ],
+          "pattern": "^narrative$"
+        },
+        "id": {
+          "description": "unique identifier of narrative",
+          "example": "12345",
+          "type": [
+            "integer"
+          ]
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/narrative/definitions/id"
+            }
+          ]
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/narrative/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/narrative/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "slug": {
+          "description": "unique identifier of narrative for use in URLs",
+          "example": "food-for-thought",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[0-9]+-[a-z0-9-]+$"
+        },
+        "title": {
+          "description": "title of the narrative",
+          "example": "Food for Thought",
+          "type": [
+            "string"
+          ]
+        },
+        "body": {
+          "description": "text of the narrative",
+          "example": "Much has been said, and much remains to be said...",
+          "type": [
+            "string"
+          ]
+        },
+        "image": {
+          "description": "image for the narrative",
+          "example": "https://www.example.com/assets/food-for-thought.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "highlighted": {
+          "description": "indicates narratives that should be given precedence",
+          "example": "true",
+          "type": [
+            "boolean"
+          ]
+        },
+        "start_date": {
+          "description": "start of period when the narrative is featured",
+          "example": "2012-01-01T12:00:00Z",
+          "format": "date-time",
+          "type": [
+            "string"
+          ]
+        },
+        "end_date": {
+          "description": "end of period when the narrative is featured",
+          "example": "2012-01-01T12:00:00Z",
+          "format": "date-time",
+          "type": [
+            "string"
+          ]
+        },
+        "position": {
+          "description": "sort priority of the narrative",
+          "example": 4,
+          "type": [
+            "integer"
+          ]
+        },
+        "librarian_id": {
+          "description": "librarian id",
+          "example": 4,
+          "type": [
+            "integer"
+          ]
+        },
+        "librarian_slug": {
+          "description": "librarian slug",
+          "example": "1-librarian-name",
+          "type": [
+            "string"
+          ]
+        },
+        "librarian_name": {
+          "description": "librarian name",
+          "example": "Librarian Name",
+          "type": [
+            "string"
+          ]
+        },
+        "librarian_description": {
+          "description": "librarian description",
+          "example": "Librarian description.",
+          "type": [
+            "string"
+          ]
+        },
+        "librarian_bookshop": {
+          "description": "librarian bookshop",
+          "example": "Librarian bookshop.",
+          "type": [
+            "string"
+          ]
+        },
+        "librarian_photo_url": {
+          "description": "librarian photo",
+          "example": "https://example.com/librarian_1.jpg",
+          "type": [
+            "string"
+          ]
+        },
+        "librarian_facebook": {
+          "description": "librarian facebook",
+          "example": "https://facebook.com/librarian_1",
+          "type": [
+            "string"
+          ]
+        },
+        "librarian_twitter": {
+          "description": "librarian twitter",
+          "example": "https://twitter.com/librarian_1",
+          "type": [
+            "string"
+          ]
+        },
+        "links": {
+          "description": "entity relations",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "children": {
+              "$ref": "#/definitions/narrative/definitions/children"
+            },
+            "book_selection": {
+              "description": "some of the books in the narrative",
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/book/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/book/definitions/book_ids"
+                }
+              }
+            }
+          },
+          "additionalProperties": {
+            "parent": {
+              "$ref": "#/definitions/narrative/definitions/parent"
+            }
+          }
+        },
+        "children": {
+          "description": "array of child narratives",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/narrative/definitions/type"
+            },
+            "ids": {
+              "$ref": "#/definitions/narrative/definitions/child_ids"
+            }
+          }
+        },
+        "parent": {
+          "description": "the parent narrative",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/narrative/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/narrative/definitions/id"
+            }
+          }
+        },
+        "child_ids": {
+          "description": "array of child narrative ids",
+          "type": [
+            "array"
+          ],
+          "items": {
+            "$ref": "#/definitions/narrative/definitions/id"
+          }
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/narrative/definitions/type"
+        },
+        "id": {
+          "$ref": "#/definitions/narrative/definitions/id"
+        },
+        "slug": {
+          "$ref": "#/definitions/narrative/definitions/slug"
+        },
+        "title": {
+          "$ref": "#/definitions/narrative/definitions/title"
+        },
+        "body": {
+          "$ref": "#/definitions/narrative/definitions/body"
+        },
+        "image": {
+          "$ref": "#/definitions/narrative/definitions/image"
+        },
+        "highlighted": {
+          "$ref": "#/definitions/narrative/definitions/highlighted"
+        },
+        "start_date": {
+          "$ref": "#/definitions/narrative/definitions/start_date"
+        },
+        "end_date": {
+          "$ref": "#/definitions/narrative/definitions/end_date"
+        },
+        "position": {
+          "$ref": "#/definitions/narrative/definitions/position"
+        },
+        "librarian_id": {
+          "$ref": "#/definitions/narrative/definitions/librarian_id"
+        },
+        "librarian_slug": {
+          "$ref": "#/definitions/narrative/definitions/librarian_slug"
+        },
+        "librarian_name": {
+          "$ref": "#/definitions/narrative/definitions/librarian_name"
+        },
+        "librarian_description": {
+          "$ref": "#/definitions/narrative/definitions/librarian_description"
+        },
+        "librarian_bookshop": {
+          "$ref": "#/definitions/narrative/definitions/librarian_bookshop"
+        },
+        "librarian_photo_url": {
+          "$ref": "#/definitions/narrative/definitions/librarian_photo_url"
+        },
+        "librarian_facebook": {
+          "$ref": "#/definitions/narrative/definitions/librarian_facebook"
+        },
+        "librarian_twitter": {
+          "$ref": "#/definitions/narrative/definitions/librarian_twitter"
+        },
+        "links": {
+          "$ref": "#/definitions/narrative/definitions/links"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "slug",
+        "title",
+        "body",
+        "image",
+        "highlighted",
+        "links"
+      ],
+      "links": [
+        {
+          "description": "Info for existing narrative.",
+          "href": "/narratives/{(%23%2Fdefinitions%2Fnarrative%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/narrative/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/narrative"
+                    },
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "The books associated with an existing narrative.",
+          "href": "/narratives/{(%23%2Fdefinitions%2Fnarrative%2Fdefinitions%2Fidentity)}/links/books",
+          "method": "GET",
+          "rel": "books",
+          "title": "Narrative books",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/narrative/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing narratives.",
+          "href": "/narratives",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "page[offset]": {
+                "description": "index of first item to fetch",
+                "example": 2,
+                "default": 1,
+                "type": [
+                  "integer"
+                ]
+              },
+              "page[limit]": {
+                "description": "number of items to fetch",
+                "example": 15,
+                "default": 25,
+                "type": [
+                  "integer"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/narrative/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/narrative"
+                    },
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "product": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Product",
+      "description": "A product describes a thing which can e sold",
+      "stability": "prototype",
+      "strictProperties": true,
+      "type": [
+        "object"
+      ],
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "product",
+          "type": [
+            "string"
+          ],
+          "pattern": "^product$"
+        },
+        "product_type": {
+          "description": "type of product",
+          "example": "ebook_pass",
+          "type": [
+            "string"
+          ],
+          "enum": [
+            "ebook_pass"
+          ]
+        },
+        "id": {
+          "description": "unique identifier of product",
+          "example": "my-product",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/product/definitions/id"
+            }
+          ]
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/product/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/product/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "slug": {
+          "description": "unique identifier of product for use in URLs",
+          "example": "123-ebook-pass",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[0-9]+.*-[a-z0-9-]+$"
+        },
+        "name": {
+          "description": "name of the product",
+          "example": "My Product",
+          "type": [
+            "string"
+          ]
+        },
+        "description": {
+          "description": "description of the product",
+          "example": "Much has been said, and much remains to be said...",
+          "type": [
+            "string"
+          ]
+        },
+        "base_price": {
+          "description": "base price of the product (in cents)",
+          "example": 1350,
+          "type": [
+            "integer"
+          ]
+        },
+        "current_price": {
+          "description": "base price of the product (in cents)",
+          "example": 1350,
+          "type": [
+            "integer"
+          ]
+        },
+        "links": {
+          "description": "entity relations",
+          "type": [
+            "object"
+          ],
+          "additionalProperties": {
+            "books": {
+              "description": "any books related to the product",
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/book/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/book/definitions/book_ids"
+                }
+              }
+            },
+            "images": {
+              "description": "any images related to the product",
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/image/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/image/definitions/image_ids"
+                }
+              }
+            }
+          }
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/product/definitions/type"
+        },
+        "product_type": {
+          "$ref": "#/definitions/product/definitions/product_type"
+        },
+        "id": {
+          "$ref": "#/definitions/product/definitions/id"
+        },
+        "slug": {
+          "$ref": "#/definitions/product/definitions/slug"
+        },
+        "name": {
+          "$ref": "#/definitions/product/definitions/name"
+        },
+        "description": {
+          "$ref": "#/definitions/product/definitions/description"
+        },
+        "base_price": {
+          "$ref": "#/definitions/product/definitions/base_price"
+        },
+        "current_price": {
+          "$ref": "#/definitions/product/definitions/current_price"
+        },
+        "links": {
+          "$ref": "#/definitions/product/definitions/links"
+        }
+      },
+      "required": [
+        "type",
+        "product_type",
+        "id",
+        "slug",
+        "name",
+        "description",
+        "base_price",
+        "current_price",
+        "links"
+      ],
+      "links": [
+        {
+          "description": "Info for existing product.",
+          "href": "/products/{(%23%2Fdefinitions%2Fproduct%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/product/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/product"
+                    },
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "The books associated with an existing product.",
+          "href": "/products/{(%23%2Fdefinitions%2Fproduct%2Fdefinitions%2Fidentity)}/links/books",
+          "method": "GET",
+          "rel": "books",
+          "title": "Product books",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/product/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing products.",
+          "href": "/products",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "filter[product_type]": {
+                "description": "filter by product type",
+                "$ref": "#/definitions/product/definitions/product_type"
+              },
+              "sort": {
+                "description": "sorting criteria",
+                "example": "+price",
+                "default": "-price",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "+price",
+                  "-price"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/product/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "promotion": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Promotion",
+      "description": "A promotion describes a collection of books",
+      "stability": "prototype",
+      "strictProperties": true,
+      "type": [
+        "object"
+      ],
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "promotion",
+          "type": [
+            "string"
+          ],
+          "pattern": "^promotion$"
+        },
+        "id": {
+          "description": "unique identifier of promotion",
+          "example": "food-for-thought",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/promotion/definitions/id"
+            }
+          ]
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/promotion/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/promotion/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "promotion_type": {
+          "description": "type of promotion",
+          "example": "promotion",
+          "type": [
+            "string"
+          ],
+          "enum": [
+            "promotion",
+            "daily_deal",
+            "publisher_of_the_month"
+          ]
+        },
+        "slug": {
+          "description": "unique identifier of promotion for use in URLs",
+          "example": "food-for-thought",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "title": {
+          "description": "title of the promotion",
+          "example": "Food for Thought",
+          "type": [
+            "string"
+          ]
+        },
+        "body": {
+          "description": "text of the promotion",
+          "example": "Much has been said, and much remains to be said...",
+          "type": [
+            "string"
+          ]
+        },
+        "image": {
+          "description": "image for the promotion",
+          "example": "https://www.example.com/assets/food-for-thought.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "image_background": {
+          "description": "background colour for the image",
+          "example": "https://www.example.com/assets/food-for-thought.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "thumb": {
+          "description": "thumbnail image for the promotion",
+          "example": "https://www.example.com/assets/thumbs/food-for-thought.jpg",
+          "type": [
+            "string"
+          ],
+          "format": "uri"
+        },
+        "start_date": {
+          "description": "when the promotion starts",
+          "example": "2012-01-01T12:00:00Z",
+          "format": "date-time",
+          "type": [
+            "string"
+          ]
+        },
+        "end_date": {
+          "description": "when the promotion ends",
+          "example": "2012-01-01T12:00:00Z",
+          "format": "date-time",
+          "type": [
+            "string"
+          ]
+        },
+        "links": {
+          "description": "entity relations",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "book_selection": {
+              "description": "some of the books in the promotion",
+              "type": [
+                "object"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/book/definitions/type"
+                },
+                "ids": {
+                  "$ref": "#/definitions/book/definitions/book_ids"
+                }
+              }
+            }
+          }
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/promotion/definitions/type"
+        },
+        "id": {
+          "$ref": "#/definitions/promotion/definitions/id"
+        },
+        "slug": {
+          "$ref": "#/definitions/promotion/definitions/slug"
+        },
+        "title": {
+          "$ref": "#/definitions/promotion/definitions/title"
+        },
+        "promotion_type": {
+          "$ref": "#/definitions/promotion/definitions/promotion_type"
+        },
+        "body": {
+          "$ref": "#/definitions/promotion/definitions/body"
+        },
+        "image": {
+          "$ref": "#/definitions/promotion/definitions/image"
+        },
+        "image_background": {
+          "$ref": "#/definitions/promotion/definitions/image_background"
+        },
+        "thumb": {
+          "$ref": "#/definitions/promotion/definitions/thumb"
+        },
+        "start_date": {
+          "$ref": "#/definitions/promotion/definitions/start_date"
+        },
+        "end_date": {
+          "$ref": "#/definitions/promotion/definitions/end_date"
+        },
+        "links": {
+          "$ref": "#/definitions/promotion/definitions/links"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "slug",
+        "promotion_type",
+        "title",
+        "body",
+        "image",
+        "thumb",
+        "links"
+      ],
+      "links": [
+        {
+          "description": "Info for existing promotion.",
+          "href": "/promotions/{(%23%2Fdefinitions%2Fpromotion%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/promotion/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/promotion"
+                    },
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "The books associated with an existing promotion.",
+          "href": "/promotions/{(%23%2Fdefinitions%2Fpromotion%2Fdefinitions%2Fidentity)}/links/books",
+          "method": "GET",
+          "rel": "books",
+          "title": "Promotion books",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/promotion/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "The books associated with the current daily-deals promotion.",
+          "href": "/promotions/daily",
+          "method": "GET",
+          "rel": "books",
+          "title": "Daily deals books",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/promotion/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing promotions.",
+          "href": "/promotions",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "filter[promotion_type]": {
+                "description": "filter by promotion type",
+                "$ref": "#/definitions/promotion/definitions/promotion_type"
+              },
+              "sort": {
+                "description": "sorting criteria",
+                "example": "-start_date",
+                "default": "+start_date",
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "+id",
+                  "-id",
+                  "+slug",
+                  "-slug",
+                  "+title",
+                  "-title",
+                  "+start_date",
+                  "-start_date",
+                  "+end_date",
+                  "-end_date"
+                ]
+              },
+              "page[offset]": {
+                "description": "index of first item to fetch",
+                "example": 2,
+                "default": 1,
+                "type": [
+                  "integer"
+                ]
+              },
+              "page[limit]": {
+                "description": "number of items to fetch",
+                "example": 15,
+                "default": 25,
+                "type": [
+                  "integer"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/promotion/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/book"
+                    },
+                    {
+                      "$ref": "#/definitions/publisher"
+                    },
+                    {
+                      "$ref": "#/definitions/author"
+                    },
+                    {
+                      "$ref": "#/definitions/category"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "publisher": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Publisher",
+      "description": "A Publisher represents a publisher with some books in the in catalogue.",
+      "stability": "prototype",
+      "type": [
+        "object"
+      ],
+      "strictProperties": true,
+      "definitions": {
+        "type": {
+          "description": "type of entity",
+          "example": "publisher",
+          "type": [
+            "string"
+          ],
+          "pattern": "^publisher"
+        },
+        "id": {
+          "description": "identifier of publisher",
+          "example": "franco-angeli-edizioni",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/publisher/definitions/id"
+            }
+          ]
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/publisher/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/publisher/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "name": {
+          "description": "name of publisher",
+          "example": "Franco Angeli Edizioni",
+          "type": [
+            "string"
+          ]
+        },
+        "image": {
+          "description": "image of publisher",
+          "example": "https://www.bookrepublic.it/static/cache/3e/69/3e69bfae62333918578ea2bb8be3f318.jpg",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "description": {
+          "description": "description of author",
+          "example": "Edizioni Mondadori è l’editore di molti dei più riconosciuti autori italiani e stranieri. Nella narrativa italiana pubblica i più promettenti nuovi talenti tra i quali Paolo Giordano e Alessandro D'Avenia, oltre ad autori con consolidato successo di critica e pubblico come Margaret Mazzantini, Andrea Camilleri e Valerio Massimo Manfredi. Nella narrativa straniera, oltre al bestseller mondiale Dan Brown, vengono pubblicati con successo sia autori di intrattenimento, tra cui Carlos Ruiz Zafón, Sophie Kinsella, John Grisham e Patricia Cornwell sia autori di rilievo letterario come David Grossman e Salman Rusdhie. Per quanto riguarda il settore saggistico Mondadori pubblica i libri di alcuni dei più importanti giornalisti e personaggi di spicco dell’attualità italiana, da Bruno Vespa a Federico Rampini, da Michela Marzano a Mario Calabresi. La casa editrice pubblica anche i libri dei più amati personaggi dei media come Luciana Littizzetto e Fabio Volo e di celebrità come Vasco Rossi e Francesco Totti.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/publisher/definitions/type"
+        },
+        "id": {
+          "$ref": "#/definitions/publisher/definitions/id"
+        },
+        "name": {
+          "$ref": "#/definitions/publisher/definitions/name"
+        },
+        "description": {
+          "$ref": "#/definitions/publisher/definitions/description"
+        },
+        "image": {
+          "$ref": "#/definitions/publisher/definitions/image"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "description",
+        "image"
+      ],
+      "links": [
+        {
+          "description": "Info for existing publisher.",
+          "href": "/publishers/{(%23%2Fdefinitions%2Fpublisher%2Fdefinitions%2Fidentity)}",
+          "method": "GET",
+          "rel": "self",
+          "title": "Info",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/definitions/publisher/definitions/link"
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/publisher"
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "List existing publishers.",
+          "href": "/publishers",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "schema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "filter[query]": {
+                "description": "textual query to match",
+                "example": "mondadori",
+                "type": [
+                  "string"
+                ]
+              },
+              "page[offset]": {
+                "description": "index of first item to fetch",
+                "example": 2,
+                "default": 1,
+                "type": [
+                  "integer"
+                ]
+              },
+              "page[limit]": {
+                "description": "number of items to fetch",
+                "example": 15,
+                "default": 25,
+                "type": [
+                  "integer"
+                ]
+              }
+            }
+          },
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/publisher/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/publisher"
+                }
+              },
+              "meta": {
+                "type": [
+                  "object"
+                ],
+                "properties": {
+                  "total_count": {
+                    "type": [
+                      "integer"
+                    ],
+                    "example": 341
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "summary": {
+      "$schema": "http://json-schema.org/draft-04/hyper-schema",
+      "title": "Bookrepublic catalogue API - Summary",
+      "description": "Service statistics",
+      "stability": "prototype",
+      "type": [
+        "object"
+      ],
+      "strictProperties": true,
+      "definitions": {
+        "type": {
+          "description": "type of summary entity",
+          "example": "summary",
+          "type": [
+            "string"
+          ],
+          "pattern": "^summary$"
+        },
+        "id": {
+          "description": "identifier of summary entity",
+          "example": "books",
+          "type": [
+            "string"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "identity": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/summary/definitions/id"
+            }
+          ]
+        },
+        "name": {
+          "description": "name of summary",
+          "example": "Books",
+          "type": [
+            "string"
+          ]
+        },
+        "count": {
+          "description": "number of entities available",
+          "example": 27345,
+          "type": [
+            "integer"
+          ]
+        },
+        "link": {
+          "description": "tuple identifying entity",
+          "type": [
+            "object"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/summary/definitions/type"
+            },
+            "id": {
+              "$ref": "#/definitions/summary/definitions/id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/summary/definitions/id"
+        },
+        "type": {
+          "$ref": "#/definitions/summary/definitions/type"
+        },
+        "name": {
+          "$ref": "#/definitions/summary/definitions/name"
+        },
+        "count": {
+          "$ref": "#/definitions/summary/definitions/count"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "count"
+      ],
+      "links": [
+        {
+          "description": "Catalogue summary.",
+          "href": "/summary",
+          "method": "GET",
+          "rel": "instances",
+          "title": "List",
+          "targetSchema": {
+            "type": [
+              "object"
+            ],
+            "properties": {
+              "data": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "$ref": "#/definitions/summary/definitions/link"
+                }
+              },
+              "linked": {
+                "type": [
+                  "array"
+                ],
+                "items": {
+                  "type": [
+                    "object"
+                  ],
+                  "$ref": "#/definitions/summary"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "author": {
+      "$ref": "#/definitions/author"
+    },
+    "book": {
+      "$ref": "#/definitions/book"
+    },
+    "category": {
+      "$ref": "#/definitions/category"
+    },
+    "image": {
+      "$ref": "#/definitions/image"
+    },
+    "narrative": {
+      "$ref": "#/definitions/narrative"
+    },
+    "product": {
+      "$ref": "#/definitions/product"
+    },
+    "promotion": {
+      "$ref": "#/definitions/promotion"
+    },
+    "publisher": {
+      "$ref": "#/definitions/publisher"
+    },
+    "summary": {
+      "$ref": "#/definitions/summary"
+    }
+  },
+  "id": "catalogue",
+  "links": [
+    {
+      "href": "https://catalogue.bookrepublic.it",
+      "rel": "self"
+    }
+  ],
+  "title": "BookRepublic catalogue",
+  "description": "Book catalogue API for BookRepublic."
+}
