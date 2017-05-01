@@ -373,7 +373,7 @@ defmodule JSONHyperschema.ClientBuilder do
   defp duplicates(lists) do
     items =
       lists
-      |> Enum.flat_map(&(&1))
+      |> List.flatten
       |> Enum.sort
 
     Enum.reduce(
