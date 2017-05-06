@@ -67,11 +67,11 @@ defmodule JSONHyperschema.ClientBuilder do
         end
 
         def http_client do
-          env[:http_client] || HTTPotion
+          env()[:http_client] || HTTPoison
         end
 
         def access_token do
-          env[:access_token]
+          env()[:access_token]
         end
 
         def headers do

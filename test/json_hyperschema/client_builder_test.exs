@@ -4,17 +4,19 @@ defmodule JSONHyperschema.ClientBuilderTestData do
   def fixtures_path, do: Path.join("test", "fixtures")
 
   def good_schema do
-    good_schema_pathname = Path.join(fixtures_path, "good_schema.json")
+    good_schema_pathname = Path.join(fixtures_path(), "good_schema.json")
     File.read!(good_schema_pathname)
   end
 
   def duplicate_rels_schema do
-    duplicate_rels_pathname = Path.join(fixtures_path, "duplicate_rels_schema.json")
+    duplicate_rels_pathname = Path.join(
+      fixtures_path(), "duplicate_rels_schema.json"
+    )
     File.read!(duplicate_rels_pathname)
   end
 
   def load_schema(name) do
-    pathname = Path.join(fixtures_path, name)
+    pathname = Path.join(fixtures_path(), name)
     File.read!(pathname)
   end
 
@@ -52,14 +54,14 @@ defmodule JSONHyperschema.ClientBuilderTestData do
   def no_definitions_schema do
     JSX.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
-      "links" => [%{"rel" => "self", "href" => endpoint}]
+      "links" => [%{"rel" => "self", "href" => endpoint()}]
     })
   end
 
   def no_links_error do
     JSX.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
-      "links" => [%{"rel" => "self", "href" => endpoint}],
+      "links" => [%{"rel" => "self", "href" => endpoint()}],
       "definitions" => %{
         "thing" => %{
         }
@@ -69,13 +71,13 @@ defmodule JSONHyperschema.ClientBuilderTestData do
 
   def response_data, do: %{"data" => %{"ciao" => "hello"}}
 
-  def response_content, do: response_data
+  def response_content, do: response_data()
 
-  def response_body, do: JSX.encode!(response_content)
+  def response_body, do: JSX.encode!(response_content())
 
   def missing_content, do: %{"message" => "missing"}
 
-  def missing_body, do: JSX.encode!(missing_content)
+  def missing_body, do: JSX.encode!(missing_content())
 
   def set_fake_client(client) do
     Application.put_env(
@@ -129,7 +131,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
   setup context do
     case context[:schema] do
       :none -> nil
-      nil   -> TestClientBuilder.build(good_schema)
+      nil   -> TestClientBuilder.build(good_schema())
       _     -> TestClientBuilder.build(context[:schema])
     end
     case context[:client] do
@@ -158,7 +160,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
     test "it fails if the schema has no endpoint" do
       assert_raise(
         JSONHyperschema.Schema.MissingEndpointError,
-        fn -> TestClientBuilder.build(no_endpoint_schema) end
+        fn -> TestClientBuilder.build(no_endpoint_schema()) end
       )
     end
 
@@ -166,7 +168,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
     test "it fails if there are no definitions" do
       assert_raise(
         JSONHyperschema.ClientBuilder.MissingDefinitionsError,
-        fn -> TestClientBuilder.build(no_definitions_schema) end
+        fn -> TestClientBuilder.build(no_definitions_schema()) end
       )
     end
   end
@@ -198,14 +200,14 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert part_functions == [update: 3]
   end
 
-  @tag schema: duplicate_rels_schema
+  @tag schema: duplicate_rels_schema()
   test "it creates unique function names" do
     thing_functions = My.Client.Thing.__info__(:functions)
     assert thing_functions == [do_something_general: 0, do_something_specific: 1]
   end
 
   test "it validates the supplied body against the schema" do
-    {:error, messages} = My.Client.Thing.create(bad_data)
+    {:error, messages} = My.Client.Thing.create(bad_data())
 
     assert messages == [
       {"Schema does not allow additional properties.", "#/data/ciao"},
@@ -219,35 +221,35 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
     assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
 
-    assert String.starts_with?(url, endpoint)
+    assert String.starts_with?(url, endpoint())
   end
 
   test "it calls the endpoint" do
-    My.Client.Thing.create(thing_data)
+    My.Client.Thing.create(thing_data())
 
     assert_receive {FakeHTTPClient, :request, _}, 100
   end
 
   test "it uses the correct HTTP verb" do
-    My.Client.Thing.create(thing_data)
+    My.Client.Thing.create(thing_data())
 
     assert_receive {FakeHTTPClient, :request, {:post, _, _}}, 100
   end
 
   test "it inserts URL parameters" do
-    My.Client.Thing.update(thing_id, thing_data)
+    My.Client.Thing.update(thing_id(), thing_data())
 
     assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
 
-    assert url == "#{endpoint}/things/#{thing_id}"
+    assert url == "#{endpoint()}/things/#{thing_id()}"
   end
 
   test "it handles multiple URL parameters" do
-    My.Client.Part.update(thing_id, part_id, part_data)
+    My.Client.Part.update(thing_id(), part_id(), part_data())
 
     assert_receive {FakeHTTPClient, :request, {_method, url, _parameters}}, 100
 
-    assert url == "#{endpoint}/things/#{thing_id}/parts/#{part_id}"
+    assert url == "#{endpoint()}/things/#{thing_id()}/parts/#{part_id()}"
   end
 
   test "it adds query parameters" do
@@ -262,20 +264,20 @@ defmodule JSONHyperschema.ClientBuilderTest do
   end
 
   test "it sends the JSON body" do
-    My.Client.Thing.create(thing_data)
+    My.Client.Thing.create(thing_data())
 
-    assert_receive {FakeHTTPClient, :request, {:post, _, parameters}}, 100
-    assert parameters[:body] == JSX.encode!(thing_data)
+    assert_receive {FakeHTTPClient, :request, {:post, _, body, _parameters}}, 100
+    assert body == JSX.encode!(thing_data())
   end
 
   test "it returns OK if the call succeeds" do
-    {:ok, _} = My.Client.Thing.create(thing_data)
+    {:ok, _} = My.Client.Thing.create(thing_data())
   end
 
   @tag client: FakeHTTP404Client
   test "it handles 404" do
     {:error, message} = My.Client.Thing.index
-    assert message == missing_content
+    assert message == missing_content()
   end
 
   @tag client: FakeHTTPTimeoutClient
@@ -287,6 +289,6 @@ defmodule JSONHyperschema.ClientBuilderTest do
   test "it returns the JSON-decoded response body" do
     {:ok, body} = My.Client.Thing.index(%{"filter[query]" => "bar"})
 
-    assert body == response_data
+    assert body == response_data()
   end
 end

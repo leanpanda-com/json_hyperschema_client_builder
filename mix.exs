@@ -9,10 +9,10 @@ defmodule JSONHyperschema.ClientBuilder.Mixfile do
       version: @version,
       description: "Generate HTTP clients based on JSON Hyperschemas",
       elixir: "~> 1.3",
-      package: package,
+      package: package(),
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps,
+      deps: deps(),
       contributors: ["Joe Yates"],
     ]
   end
