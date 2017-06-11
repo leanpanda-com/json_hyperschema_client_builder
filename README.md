@@ -4,7 +4,8 @@ Creates an HTTP Client based on a JSON Hyperschema.
 
 # Installation
 
-1. Add `json_hyperschema_client_builder` to your list of dependencies in `mix.exs`:
+1. Add `json_hyperschema_client_builder` to your list of dependencies in
+  `mix.exs`:
 
 ```elixir
 def deps do
@@ -61,7 +62,7 @@ via a series of macros.
 ## JSON Schema/Hyperschema Libraries
 
 Currently, there is no Elixir module that handles resolving and validating
-aganst JSON hyperschema. This code cheats by replaceing "$schema" values
+against JSON hyperschemas. This code cheats by replaceing "$schema" values
 with the URL for the Draft 4 Schema, as it is the only one that `ex_json_schema`
 handles.
 
