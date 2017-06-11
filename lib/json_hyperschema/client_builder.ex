@@ -70,16 +70,25 @@ defmodule JSONHyperschema.ClientBuilder do
           env()[:http_client] || HTTPoison
         end
 
+        def authorization_type do
+          env()[:authorization_type] || "Bearer"
+        end
+
         def access_token do
           env()[:access_token]
         end
 
         def headers do
-          [
+          token = access_token()
+          h = [
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Authorization": "Bearer #{access_token}"
           ]
+          if token do
+            h ++ ["Authorization": "#{authorization_type()} #{token}"]
+          else
+            h
+          end
         end
 
         definitions_ref = [:root, "definitions"]
@@ -198,7 +207,7 @@ defmodule JSONHyperschema.ClientBuilder do
         # Pass the JSON-encoded params as the request body
         quote do
           body_json = JSX.encode!(unquote(params_var))
-          request(unquote(api_module), unquote(method), path, body: body_json)
+          request(unquote(api_module), unquote(method), path, body_json)
         end
       else
         quote do
@@ -261,7 +270,7 @@ defmodule JSONHyperschema.ClientBuilder do
 
       # 3. Finally, we can define the actual function:
 
-      Module.put_attribute(__MODULE__, :doc, {1, action_docs}, [])
+      Module.put_attribute(__MODULE__, :doc, {1, action_docs})
 
       def unquote(:"#{name}")(unquote_splicing(method_params)) do
         unquote(path_assignment)
@@ -272,9 +281,8 @@ defmodule JSONHyperschema.ClientBuilder do
 
   @doc false
   def load_schema(json) do
-    {:ok, schema} = make_schema_draft4_compatible(json)
-    |> JSX.decode
-    schema
+    make_schema_draft4_compatible(json)
+    |> JSX.decode!
   end
 
   @doc false
@@ -472,22 +480,23 @@ defmodule JSONHyperschema.ClientBuilder do
   end
 
   @doc false
-  def request(api_module, method, path, params \\ []) do
-    all_params = Keyword.merge([headers: api_module.headers], params)
+  def request(api_module, method, path, body \\"") do
     url = api_module.endpoint <> path
-    api_module.http_client.request(method, url, all_params) |> handle_response
+    client = api_module.http_client
+    client.request(method, url, body, api_module.headers)
+    |> handle_response
   end
 
-  defp handle_response(%HTTPotion.Response{status_code: 200, body: body}) do
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
     {:ok, JSX.decode!(body)}
   end
-  defp handle_response(%HTTPotion.Response{status_code: 201, body: body}) do
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 201, body: body}}) do
     {:ok, JSX.decode!(body)}
   end
-  defp handle_response(%HTTPotion.Response{status_code: _status_code, body: body}) do
+  defp handle_response({_, %HTTPoison.Response{status_code: _status_code, body: body}}) do
     {:error, JSX.decode!(body)}
   end
-  defp handle_response(%HTTPotion.ErrorResponse{message: message}) do
-    {:error, message}
+  defp handle_response({:error, %HTTPoison.Error{id: _id, reason: reason}}) do
+    {:error, reason}
   end
 end
