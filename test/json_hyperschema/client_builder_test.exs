@@ -81,8 +81,8 @@ defmodule JSONHyperschema.ClientBuilderTestData do
 
   def set_fake_client(client) do
     Application.put_env(
-      :json_hyperschema_client_builder,
-      My.Client,
+      :my_client,
+      :api_config,
       [http_client: client]
     )
   end
@@ -92,7 +92,7 @@ defmodule TestClientBuilder do
   import JSONHyperschema.ClientBuilder
 
   def build(schema) do
-    defapi "My.Client", schema
+    defapi "My.Client", :my_client, schema
   end
 end
 

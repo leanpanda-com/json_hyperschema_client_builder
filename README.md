@@ -16,11 +16,12 @@ end
 # Usage
 
 ```elixir
-defapi "My.Client", schema_json
+defapi "My.Client", :app_name, schema_json
 ```
 
 Where:
 * `"My.Client"` becomes the top-level module,
+* `:app_name` is the `app` value from your mix project,
 * `schema_json` is the schema as a JSON string.
 
 Each `definition` in the schema is transformed into a sub-module of the
@@ -39,8 +40,8 @@ tokens.
 Inside your project's config, you can set the token on the generated model:
 
 ```
-config :json_hyperschema_client_builder, My.Client,
-  access_token: "secret"
+config :my_app, :api_config,
+  %{access_token: "secret"}
 ```
 
 If you implement a login system, you can set the token at run time:
@@ -48,7 +49,7 @@ If you implement a login system, you can set the token at run time:
 ```
 token = ...
 Application.put_env(
-  :json_hyperschema_client_builder, My.Client, %{access_token: token}
+  :my_app, :api_config, %{access_token: token}
 )
 ```
 

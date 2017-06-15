@@ -49,7 +49,7 @@ defmodule JSONHyperschema.ClientBuilder do
   The function's parameter will be the value of the `identity` to be inserted
   in the URL.
   """
-  defmacro defapi(api_module_name, json) do
+  defmacro defapi(api_module_name, app, json) do
     quote location: :keep, bind_quoted: binding() do
       unresolved = load_schema(json)
       ensure_definitions! unresolved
@@ -63,7 +63,7 @@ defmodule JSONHyperschema.ClientBuilder do
         end
 
         def env do
-          Application.get_env(:json_hyperschema_client_builder, __MODULE__, %{})
+          Application.get_env(unquote(app), :api_config, %{})
         end
 
         def http_client do
