@@ -70,25 +70,15 @@ defmodule JSONHyperschema.ClientBuilder do
           env()[:http_client] || HTTPoison
         end
 
-        def authorization_type do
-          env()[:authorization_type] || "Bearer"
-        end
-
-        def access_token do
-          env()[:access_token]
+        def env_headers do
+          env()[:headers] || []
         end
 
         def headers do
-          token = access_token()
           h = [
             "Accept": "application/json",
             "Content-Type": "application/json",
-          ]
-          if token do
-            h ++ ["Authorization": "#{authorization_type()} #{token}"]
-          else
-            h
-          end
+          ] ++ env_headers()
         end
 
         definitions_ref = [:root, "definitions"]
@@ -483,7 +473,8 @@ defmodule JSONHyperschema.ClientBuilder do
   def request(api_module, method, path, body \\"") do
     url = api_module.endpoint <> path
     client = api_module.http_client
-    client.request(method, url, body, api_module.headers)
+    headers = api_module.headers()
+    client.request(method, url, body, headers)
     |> handle_response
   end
 

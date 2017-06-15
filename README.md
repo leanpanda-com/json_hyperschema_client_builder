@@ -41,7 +41,7 @@ Inside your project's config, you can set the token on the generated model:
 
 ```
 config :my_app, :api_config,
-  %{access_token: "secret"}
+  %{headers: ["Authorization": "Bearer secret"]}
 ```
 
 If you implement a login system, you can set the token at run time:
@@ -49,7 +49,7 @@ If you implement a login system, you can set the token at run time:
 ```
 token = ...
 Application.put_env(
-  :my_app, :api_config, %{access_token: token}
+  :my_app, :api_config, %{headers: ["Authorization": "Bearer #{secret}"]}
 )
 ```
 
