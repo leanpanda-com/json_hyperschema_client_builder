@@ -74,9 +74,13 @@ defmodule JSONHyperschema.ClientBuilder do
           env()[:headers] || []
         end
 
+        def accept do
+          env()[:accept] || "application/json"
+        end
+
         def headers do
           h = [
-            "Accept": "application/json",
+            "Accept": accept(),
             "Content-Type": "application/json",
           ] ++ env_headers()
         end
