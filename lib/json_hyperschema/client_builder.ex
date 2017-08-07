@@ -74,6 +74,10 @@ defmodule JSONHyperschema.ClientBuilder do
           env()[:headers] || []
         end
 
+        def options do
+          env()[:options] || []
+        end
+
         def headers do
           h = [
             "Accept": "application/json",
@@ -474,7 +478,8 @@ defmodule JSONHyperschema.ClientBuilder do
     url = api_module.endpoint <> path
     client = api_module.http_client
     headers = api_module.headers()
-    client.request(method, url, body, headers)
+    options = api_module.options()
+    client.request(method, url, body, headers, options)
     |> handle_response
   end
 
