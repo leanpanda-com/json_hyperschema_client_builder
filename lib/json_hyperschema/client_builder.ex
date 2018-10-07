@@ -21,12 +21,12 @@ defmodule JSONHyperschema.ClientBuilder do
   ## Example
 
       schema_json = File.read!(schema_path)
-      defapi Foo.Client, schema_path
+      defapi "Foo.Client", :my_app, schema_json
 
   will create a submodule under Foo.Client for each type definition in the
   schema, and a function for each API call described by "links".
 
-  If the schema contains
+  If the schema contains the following:
 
       ...
       "definitions": {
