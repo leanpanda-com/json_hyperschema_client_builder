@@ -1,3 +1,8 @@
+[![Build Status](https://secure.travis-ci.org/leanpanda-com/json_hyperschema_client_builder.svg)][Continuous Integration]
+
+[Source Code]: https://github.org/leanpanda-com/json_hyperschema_client_builder "Source code at GitHub"
+[Continuous Integration]: http://travis-ci.org/leanpanda-com/json_hyperschema_client_builder "Build status by Travis-CI"
+
 # JSONHyperschema.ClientBuilder
 
 Creates an HTTP Client based on a JSON Hyperschema.
