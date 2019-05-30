@@ -14,7 +14,7 @@ Creates an HTTP Client based on a JSON Hyperschema.
 
 ```elixir
 def deps do
-  [{:json_hyperschema_client_builder, "~> 0.6.0"}]
+  [{:json_hyperschema_client_builder, "~> 0.9.1"}]
 end
 ```
 
