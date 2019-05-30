@@ -1,4 +1,5 @@
 [![Build Status](https://secure.travis-ci.org/leanpanda-com/json_hyperschema_client_builder.svg)][Continuous Integration]
+[![Hex.pm](https://img.shields.io/hexpm/v/json_hyperschema_client_builder.svg?style=flat-square)](https://hex.pm/packages/json_hyperschema_client_builder)
 
 [Source Code]: https://github.org/leanpanda-com/json_hyperschema_client_builder "Source code at GitHub"
 [Continuous Integration]: http://travis-ci.org/leanpanda-com/json_hyperschema_client_builder "Build status by Travis-CI"
