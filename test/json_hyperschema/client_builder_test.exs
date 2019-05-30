@@ -99,8 +99,8 @@ end
 defmodule FakeHTTPClient do
   import JSONHyperschema.ClientBuilderTestData
 
-  def request(method, url, body, options) do
-    send self(), {__MODULE__, :request, {method, url, body, options}}
+  def request(method, url, body, headers, options) do
+    send self(), {__MODULE__, :request, {method, url, body, headers, options}}
     {:ok, %HTTPoison.Response{status_code: 200, body: response_body()}}
   end
 end
@@ -108,8 +108,8 @@ end
 defmodule FakeHTTP404Client do
   import JSONHyperschema.ClientBuilderTestData
 
-  def request(method, url, body, options) do
-    send self(), {__MODULE__, :request, {method, url, body, options}}
+  def request(method, url, body, headers, options) do
+    send self(), {__MODULE__, :request, {method, url, body, headers, options}}
     {:ok, %HTTPoison.Response{status_code: 404, body: missing_body()}}
   end
 end
@@ -117,8 +117,8 @@ end
 defmodule FakeHTTPTimeoutClient do
   import JSONHyperschema.ClientBuilderTestData
 
-  def request(method, url, body, options) do
-    send self(), {__MODULE__, :request, {method, url, body, options}}
+  def request(method, url, body, headers, options) do
+    send self(), {__MODULE__, :request, {method, url, body, headers, options}}
 
     {:error, %HTTPoison.Error{id: "error_id", reason: "Timeout"}}
   end
@@ -219,7 +219,9 @@ defmodule JSONHyperschema.ClientBuilderTest do
   test "it extracts the endpoint from the schema" do
     My.Client.Thing.index
 
-    assert_receive {FakeHTTPClient, :request, {_method, url, _, _parameters}}, 100
+    assert_receive {
+      FakeHTTPClient, :request, {_method, url, _body, _headers, _options}
+    }, 100
 
     assert String.starts_with?(url, endpoint())
   end
@@ -233,13 +235,15 @@ defmodule JSONHyperschema.ClientBuilderTest do
   test "it uses the correct HTTP verb" do
     My.Client.Thing.create(thing_data())
 
-    assert_receive {FakeHTTPClient, :request, {:post, _, _, _}}, 100
+    assert_receive {FakeHTTPClient, :request, {:post, _, _, _, _}}, 100
   end
 
   test "it inserts URL parameters" do
     My.Client.Thing.update(thing_id(), thing_data())
 
-    assert_receive {FakeHTTPClient, :request, {_method, url, _, _parameters}}, 100
+    assert_receive {
+      FakeHTTPClient, :request, {_method, url, _body, _headers, _options}
+    }, 100
 
     assert url == "#{endpoint()}/things/#{thing_id()}"
   end
@@ -247,7 +251,9 @@ defmodule JSONHyperschema.ClientBuilderTest do
   test "it handles multiple URL parameters" do
     My.Client.Part.update(thing_id(), part_id(), part_data())
 
-    assert_receive {FakeHTTPClient, :request, {_method, url, _, _parameters}}, 100
+    assert_receive {
+      FakeHTTPClient, :request, {_method, url, _body, _headers, _options}
+    }, 100
 
     assert url == "#{endpoint()}/things/#{thing_id()}/parts/#{part_id()}"
   end
@@ -255,7 +261,9 @@ defmodule JSONHyperschema.ClientBuilderTest do
   test "it adds query parameters" do
     My.Client.Thing.index(%{"filter[query]" => "bar"})
 
-    assert_receive {FakeHTTPClient, :request, {:get, url, _, _parameters}}, 100
+    assert_receive {
+      FakeHTTPClient, :request, {:get, url, _body, _headers, _options}
+    }, 100
     assert String.ends_with?(url, "?filter%5Bquery%5D=bar")
   end
 
@@ -266,7 +274,9 @@ defmodule JSONHyperschema.ClientBuilderTest do
   test "it sends the JSON body" do
     My.Client.Thing.create(thing_data())
 
-    assert_receive {FakeHTTPClient, :request, {:post, _, body, _parameters}}, 100
+    assert_receive {
+      FakeHTTPClient, :request, {:post, _url, body, _headers, _options}
+    }, 100
     assert body == JSX.encode!(thing_data())
   end
 
