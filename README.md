@@ -38,6 +38,29 @@ the final parameter is `body`, which is sent as the body of the HTTP request.
 The body is checked against the schema before being sent, and the function
 returns a tuple with `{:error, [...messages...]}` if it is not valid.
 
+# Dependencies
+
+By default, `HTTPoison` is used as the HTTP client, you can configure another
+client via the `:http_client` configuration option (see below).
+
+## Configuration
+
+Set configuration options via the `:api_config` key.
+
+Available options:
+
+* `:http_client`,
+* `:json_parser_options`,
+* `:request_headers`,
+* `:request_options`.
+
+Example:
+
+```elixir
+config :my_app, :api_config,
+  %{request_options: [timeout: :infinity, recv_timeout: :infinity]}
+```
+
 ## Authentication
 
 Currently only one schema of authentication is implemented: OAuth 2.0 bearer
@@ -47,7 +70,7 @@ Inside your project's config, you can set the token on the generated model:
 
 ```
 config :my_app, :api_config,
-  %{headers: ["Authorization": "Bearer secret"]}
+  %{request_headers: ["Authorization": "Bearer secret"]}
 ```
 
 If you implement a login system, you can set the token at run time:
@@ -55,7 +78,7 @@ If you implement a login system, you can set the token at run time:
 ```
 token = ...
 Application.put_env(
-  :my_app, :api_config, %{headers: ["Authorization": "Bearer #{secret}"]}
+  :my_app, :api_config, %{request_headers: ["Authorization": "Bearer #{secret}"]}
 )
 ```
 
