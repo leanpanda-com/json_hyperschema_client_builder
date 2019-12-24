@@ -71,18 +71,22 @@ defmodule JSONHyperschema.ClientBuilder do
         end
 
         def env_headers do
-          env()[:headers] || []
+          env()[:request_headers] || []
         end
 
-        def options do
-          env()[:options] || []
-        end
-
-        def headers do
+        def request_headers do
           h = [
             "Accept": "application/json",
             "Content-Type": "application/json",
           ] ++ env_headers()
+        end
+
+        def request_options do
+          env()[:request_options] || []
+        end
+
+        def json_parser_options do
+          env()[:json_parser_options] || []
         end
 
         definitions_ref = [:root, "definitions"]
@@ -200,7 +204,7 @@ defmodule JSONHyperschema.ClientBuilder do
       request_call = if params_var && has_body?(method) do
         # Pass the JSON-encoded params as the request body
         quote do
-          body_json = JSX.encode!(unquote(params_var))
+          body_json = Jason.encode!(unquote(params_var))
           request(unquote(api_module), unquote(method), path, body_json)
         end
       else
@@ -255,7 +259,7 @@ defmodule JSONHyperschema.ClientBuilder do
         ## params Schema
 
         ```json
-        #{JSX.encode!(body_schema, space: 1, indent: 2)}
+        #{Jason.encode!(body_schema, space: 1, indent: 2)}
         ```
         """
       else
@@ -276,7 +280,7 @@ defmodule JSONHyperschema.ClientBuilder do
   @doc false
   def load_schema(json) do
     make_schema_draft4_compatible(json)
-    |> JSX.decode!
+    |> Jason.decode!
   end
 
   @doc false
@@ -476,23 +480,23 @@ defmodule JSONHyperschema.ClientBuilder do
   @doc false
   def request(api_module, method, path, body \\"") do
     url = api_module.endpoint <> path
-    client = api_module.http_client
-    headers = api_module.headers()
-    options = api_module.options()
+    client = api_module.http_client()
+    headers = api_module.request_headers()
+    options = api_module.request_options()
     client.request(method, url, body, headers, options)
-    |> handle_response
+    |> handle_response(api_module)
   end
 
-  defp handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
-    {:ok, JSX.decode!(body)}
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}, api_module) do
+    {:ok, Jason.decode!(body, api_module.json_parser_options)}
   end
-  defp handle_response({:ok, %HTTPoison.Response{status_code: 201, body: body}}) do
-    {:ok, JSX.decode!(body)}
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 201, body: body}}, api_module) do
+    {:ok, Jason.decode!(body, api_module.json_parser_options)}
   end
-  defp handle_response({_, %HTTPoison.Response{status_code: _status_code, body: body}}) do
-    {:error, JSX.decode!(body)}
+  defp handle_response({_, %HTTPoison.Response{status_code: _status_code, body: body}}, api_module) do
+    {:error, Jason.decode!(body, api_module.json_parser_options)}
   end
-  defp handle_response({:error, %HTTPoison.Error{id: _id, reason: reason}}) do
+  defp handle_response({:error, %HTTPoison.Error{id: _id, reason: reason}}, _api_module) do
     {:error, reason}
   end
 end

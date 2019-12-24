@@ -45,21 +45,21 @@ defmodule JSONHyperschema.ClientBuilderTestData do
   def bad_data, do: %{"data" => %{"ciao" => "hello"}}
 
   def no_endpoint_schema do
-    JSX.encode!(%{
+    Jason.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
       "definitions" => %{}
     })
   end
 
   def no_definitions_schema do
-    JSX.encode!(%{
+    Jason.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
       "links" => [%{"rel" => "self", "href" => endpoint()}]
     })
   end
 
   def no_links_error do
-    JSX.encode!(%{
+    Jason.encode!(%{
       "$schema" => "http://json-schema.org/draft-04/hyper-schema",
       "links" => [%{"rel" => "self", "href" => endpoint()}],
       "definitions" => %{
@@ -73,11 +73,11 @@ defmodule JSONHyperschema.ClientBuilderTestData do
 
   def response_content, do: response_data()
 
-  def response_body, do: JSX.encode!(response_content())
+  def response_body, do: Jason.encode!(response_content())
 
   def missing_content, do: %{"message" => "missing"}
 
-  def missing_body, do: JSX.encode!(missing_content())
+  def missing_body, do: Jason.encode!(missing_content())
 
   def set_fake_client(client) do
     Application.put_env(
@@ -277,7 +277,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
     assert_receive {
       FakeHTTPClient, :request, {:post, _url, body, _headers, _options}
     }, 100
-    assert body == JSX.encode!(thing_data())
+    assert body == Jason.encode!(thing_data())
   end
 
   test "it returns OK if the call succeeds" do

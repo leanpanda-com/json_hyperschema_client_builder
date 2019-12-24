@@ -1,7 +1,7 @@
 defmodule JSONHyperschema.ClientBuilder.Mixfile do
   use Mix.Project
 
-  @version "0.9.1"
+  @version "0.10.0"
 
   def project do
     [
@@ -36,8 +36,8 @@ defmodule JSONHyperschema.ClientBuilder.Mixfile do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:ex_json_schema, "~> 0.5.1"},
-      {:exjsx, "~> 3.2.0"},
-      {:httpoison, "~> 0.11.1"}
+      {:httpoison, "~> 0.11.1"},
+      {:jason, "~> 1.1"}
     ]
   end
 end
