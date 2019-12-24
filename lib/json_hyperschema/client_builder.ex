@@ -446,7 +446,7 @@ defmodule JSONHyperschema.ClientBuilder do
     phrase
     |> String.downcase
     |> String.replace(~r([^a-z ]), "")
-    |> String.strip
+    |> String.trim
   end
 
   defp words_to_snake_case(words) do
