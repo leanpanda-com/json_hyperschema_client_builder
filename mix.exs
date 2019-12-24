@@ -35,7 +35,7 @@ defmodule JSONHyperschema.ClientBuilder.Mixfile do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:ex_json_schema, "~> 0.5.1"},
+      {:ex_json_schema, "~> 0.7.3"},
       {:httpoison, "~> 0.11.1"},
       {:jason, "~> 1.1"}
     ]

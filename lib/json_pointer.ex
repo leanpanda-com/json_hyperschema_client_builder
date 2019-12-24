@@ -34,7 +34,7 @@ defmodule JSONPointer do
   end
 
   defp resolve_ref(ref, schema) do
-    target = ExJsonSchema.Schema.get_ref_schema(schema, ref)
+    {:ok, target} = ExJsonSchema.Schema.get_fragment(schema, ref)
     if is_ref?(target) do
       resolve_ref(target["$ref"], schema)
     else

@@ -90,7 +90,7 @@ defmodule JSONHyperschema.ClientBuilder do
         end
 
         definitions_ref = [:root, "definitions"]
-        definitions = ExJsonSchema.Schema.get_ref_schema(
+        {:ok, definitions} = ExJsonSchema.Schema.get_fragment(
           resolved_hyperschema, definitions_ref
         )
         Enum.each(
@@ -110,7 +110,7 @@ defmodule JSONHyperschema.ClientBuilder do
   defmacro defresource(api_module, name, resolved_hyperschema) do
     quote location: :keep, bind_quoted: binding() do
       resource_ref = [:root, "definitions", name]
-      resource = ExJsonSchema.Schema.get_ref_schema(
+      {:ok, resource} = ExJsonSchema.Schema.get_fragment(
         resolved_hyperschema, resource_ref
       )
       links = resource["links"] || []

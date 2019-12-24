@@ -50,7 +50,7 @@ defmodule JSONHyperschema.Schema do
   end
 
   defp do_denormalize(%{"$ref" => ref}, schema) do
-    fragment = ExJsonSchema.Schema.get_ref_schema(schema, ref)
+    {:ok, fragment} = ExJsonSchema.Schema.get_fragment(schema, ref)
     denormalize_fragment(fragment, schema)
   end
   defp do_denormalize(attr = %{"type" => type}, _schema) when type == "string" or type == ["string"] do

@@ -211,8 +211,7 @@ defmodule JSONHyperschema.ClientBuilderTest do
 
     assert messages == [
       {"Schema does not allow additional properties.", "#/data/ciao"},
-      {"Required property type was not present.", "#/data"},
-      {"Required property attributes was not present.", "#/data"}
+      {"Required properties type, attributes were not present.", "#/data"}
     ]
   end
 
