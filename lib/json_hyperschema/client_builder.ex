@@ -15,13 +15,14 @@ defmodule JSONHyperschema.ClientBuilder do
   @doc """
   Defines an API client based on a JSON hyperschema.
 
-  This macro defines the top-level client module and submodules each defined
-  type (via defresource).
+  This macro defines submodules for each defined type (via defresource).
 
   ## Example
 
-      schema_json = File.read!(schema_path)
-      defapi "Foo.Client", :my_app, schema_json
+      defmodule Foo.Client do
+        schema_json = File.read!(schema_path)
+        defapi __MODULE__, :my_app, schema_json
+      end
 
   will create a submodule under Foo.Client for each type definition in the
   schema, and a function for each API call described by "links".
@@ -49,57 +50,54 @@ defmodule JSONHyperschema.ClientBuilder do
   The function's parameter will be the value of the `identity` to be inserted
   in the URL.
   """
-  defmacro defapi(api_module_name, app, json) do
+  defmacro defapi(api_module, app, json) do
     quote location: :keep, bind_quoted: binding() do
       unresolved = load_schema(json)
       ensure_definitions! unresolved
       endpoint_url = JSONHyperschema.Schema.endpoint!(unresolved)
       resolved_hyperschema = ExJsonSchema.Schema.resolve(unresolved)
-      api_module = :"Elixir.#{api_module_name}"
 
-      defmodule api_module do
-        def endpoint do
-          unquote(endpoint_url)
-        end
-
-        def env do
-          Application.get_env(unquote(app), :api_config, %{})
-        end
-
-        def http_client do
-          env()[:http_client] || HTTPoison
-        end
-
-        def env_headers do
-          env()[:request_headers] || []
-        end
-
-        def request_headers do
-          h = [
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          ] ++ env_headers()
-        end
-
-        def request_options do
-          env()[:request_options] || []
-        end
-
-        def json_parser_options do
-          env()[:json_parser_options] || []
-        end
-
-        definitions_ref = [:root, "definitions"]
-        {:ok, definitions} = ExJsonSchema.Schema.get_fragment(
-          resolved_hyperschema, definitions_ref
-        )
-        Enum.each(
-          definitions,
-          fn ({resource_name, _definition}) ->
-            defresource api_module, resource_name, resolved_hyperschema
-          end
-        )
+      def endpoint do
+        unquote(endpoint_url)
       end
+
+      def env do
+        Application.get_env(unquote(app), :api_config, %{})
+      end
+
+      def http_client do
+        env()[:http_client] || HTTPoison
+      end
+
+      def env_headers do
+        env()[:request_headers] || []
+      end
+
+      def request_headers do
+        h = [
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        ] ++ env_headers()
+      end
+
+      def request_options do
+        env()[:request_options] || []
+      end
+
+      def json_parser_options do
+        env()[:json_parser_options] || []
+      end
+
+      definitions_ref = [:root, "definitions"]
+      {:ok, definitions} = ExJsonSchema.Schema.get_fragment(
+        resolved_hyperschema, definitions_ref
+      )
+      Enum.each(
+        definitions,
+        fn ({resource_name, _definition}) ->
+          defresource api_module, resource_name, resolved_hyperschema
+        end
+      )
     end
   end
 
