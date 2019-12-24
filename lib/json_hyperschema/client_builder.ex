@@ -85,6 +85,10 @@ defmodule JSONHyperschema.ClientBuilder do
           env()[:request_options] || []
         end
 
+        def json_parser_options do
+          env()[:json_parser_options] || []
+        end
+
         definitions_ref = [:root, "definitions"]
         definitions = ExJsonSchema.Schema.get_ref_schema(
           resolved_hyperschema, definitions_ref
@@ -480,19 +484,19 @@ defmodule JSONHyperschema.ClientBuilder do
     headers = api_module.request_headers()
     options = api_module.request_options()
     client.request(method, url, body, headers, options)
-    |> handle_response
+    |> handle_response(api_module)
   end
 
-  defp handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
-    {:ok, Jason.decode!(body)}
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}, api_module) do
+    {:ok, Jason.decode!(body, api_module.json_parser_options)}
   end
-  defp handle_response({:ok, %HTTPoison.Response{status_code: 201, body: body}}) do
-    {:ok, Jason.decode!(body)}
+  defp handle_response({:ok, %HTTPoison.Response{status_code: 201, body: body}}, api_module) do
+    {:ok, Jason.decode!(body, api_module.json_parser_options)}
   end
-  defp handle_response({_, %HTTPoison.Response{status_code: _status_code, body: body}}) do
-    {:error, Jason.decode!(body)}
+  defp handle_response({_, %HTTPoison.Response{status_code: _status_code, body: body}}, api_module) do
+    {:error, Jason.decode!(body, api_module.json_parser_options)}
   end
-  defp handle_response({:error, %HTTPoison.Error{id: _id, reason: reason}}) do
+  defp handle_response({:error, %HTTPoison.Error{id: _id, reason: reason}}, _api_module) do
     {:error, reason}
   end
 end
